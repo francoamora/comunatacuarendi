@@ -1,0 +1,316 @@
+/* --- 1. VARIABLES & CONFIGURACIÓN --- */
+:root {
+    --primary: #2e7d32;      /* Verde Institucional (Identidad) */
+    --primary-dark: #1b5e20;
+    --accent: #fbc02d;       /* Amarillo/Dorado (Detalles) */
+    --text: #333333;
+    --text-light: #666666;
+    --bg-light: #f8f9fa;
+    --white: #ffffff;
+    --shadow: 0 10px 30px rgba(0,0,0,0.08); /* Sombra suave moderna */
+    --radius: 12px;          /* Bordes redondeados consistentes */
+}
+
+/* Reset y Scroll */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    color: var(--text);
+    line-height: 1.6;
+    background-color: var(--white);
+}
+
+/* Tipografía */
+h1, h2, h3, h4, .logo-text { font-family: 'Montserrat', sans-serif; font-weight: 700; }
+a { text-decoration: none; transition: all 0.3s ease; }
+ul { list-style: none; }
+
+/* --- 2. UTILIDADES --- */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.section { padding: 80px 0; }
+.bg-light { background-color: var(--bg-light); }
+
+.section-header { text-align: center; margin-bottom: 60px; }
+.section-header h2 { font-size: 2.5rem; color: var(--text); margin-bottom: 10px; }
+.overline { 
+    display: block; 
+    text-transform: uppercase; 
+    font-size: 0.85rem; 
+    font-weight: 700; 
+    color: var(--accent); 
+    letter-spacing: 2px; 
+    margin-bottom: 10px;
+}
+.subtitle { font-size: 1.1rem; color: var(--text-light); max-width: 600px; margin: 0 auto; }
+.underline { width: 60px; height: 4px; background: var(--primary); margin: 20px auto; border-radius: 2px; }
+
+/* --- 3. NAVBAR & HEADER --- */
+.navbar {
+    background: var(--white);
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    height: 90px;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.4s ease;
+}
+
+/* Efecto Glassmorphism al bajar (JS activa esto) */
+.navbar.scrolled {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    height: 70px; /* Se compacta */
+}
+
+.nav-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo Pro */
+.logo { display: flex; align-items: center; gap: 15px; color: var(--text); }
+.logo-placeholder { font-size: 2.2rem; color: var(--primary); display: flex; align-items: center; }
+.logo-img { height: 50px; width: auto; } /* Para cuando pongas la imagen real */
+
+.logo-text { 
+    display: flex; flex-direction: column; 
+    line-height: 1.1; font-size: 1.2rem; color: var(--primary-dark);
+}
+.logo-text span { 
+    font-size: 0.75rem; font-weight: 500; 
+    text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); 
+}
+
+/* Enlaces del Menú */
+.nav-links { display: flex; gap: 30px; align-items: center; }
+.nav-links a { color: var(--text); font-weight: 600; font-size: 0.95rem; position: relative; }
+.nav-links a:hover { color: var(--primary); }
+
+/* Botón destacado en menú */
+.btn-nav {
+    background: var(--primary);
+    color: white !important;
+    padding: 10px 25px;
+    border-radius: 50px;
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);
+}
+.btn-nav:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+/* Hamburguesa móvil */
+.mobile-menu-btn { display: none; background: none; border: none; font-size: 1.8rem; color: var(--primary); cursor: pointer; }
+
+/* --- 4. HERO SECTION (PORTADA) --- */
+.hero {
+    height: 85vh;
+    /* Fondo con degradado oscuro para que se lea el texto */
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(20, 50, 20, 0.8)), url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1500&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Efecto Parallax */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+
+.hero-content { position: relative; z-index: 2; max-width: 800px; padding: 0 20px; }
+
+.badge-new {
+    background: var(--accent);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.hero h1 { font-size: 3.5rem; line-height: 1.2; margin-bottom: 25px; text-shadow: 0 2px 20px rgba(0,0,0,0.5); }
+.hero p { font-size: 1.25rem; margin-bottom: 40px; opacity: 0.95; font-weight: 400; }
+
+.hero-btns { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+.btn { padding: 14px 35px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; }
+.primary { background: var(--primary); color: white; border: 2px solid var(--primary); }
+.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); transform: translateY(-3px); }
+.secondary { background: transparent; color: white; border: 2px solid white; }
+.secondary:hover { background: white; color: var(--primary); transform: translateY(-3px); }
+
+/* --- 5. SECCIÓN GESTIÓN (CARDS CON FOTO) --- */
+.gestion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+
+.gestion-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: 0.3s;
+    border: 1px solid rgba(0,0,0,0.03);
+}
+
+.gestion-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+
+.gestion-img { height: 220px; background-size: cover; background-position: center; transition: 0.5s; }
+.gestion-card:hover .gestion-img { transform: scale(1.05); } /* Zoom suave en imagen */
+
+.gestion-body { padding: 30px; }
+.gestion-body h3 { color: var(--primary-dark); margin-bottom: 12px; font-size: 1.4rem; }
+.gestion-body p { color: var(--text-light); font-size: 0.95rem; margin-bottom: 20px; }
+
+.read-more { color: var(--primary); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+.read-more:hover { gap: 12px; text-decoration: underline; }
+
+/* --- 6. SECCIÓN SERVICIOS (CARDS TIPO LISTA) --- */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+
+.service-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: var(--radius);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    border-top: 5px solid transparent;
+    transition: 0.3s;
+    text-align: left;
+}
+
+.service-card:hover { transform: translateY(-5px); border-top-color: var(--primary); }
+
+.icon-box {
+    width: 60px; height: 60px;
+    background: rgba(46, 125, 50, 0.1);
+    color: var(--primary);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; margin-bottom: 25px;
+    transition: 0.4s;
+}
+
+.service-card:hover .icon-box { background: var(--primary); color: white; transform: rotate(10deg); }
+
+.service-card h3 { font-size: 1.4rem; margin-bottom: 15px; }
+
+/* Lista de checks dentro de la card */
+.card-list { margin-bottom: 25px; }
+.card-list li { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 0.95rem; color: #555; }
+.card-list li i { color: var(--primary); font-size: 0.8rem; }
+
+.btn-card {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    border-radius: 8px;
+    font-weight: 700;
+    transition: 0.3s;
+}
+.btn-card:hover { background: var(--primary); color: white; }
+
+/* --- 7. CTA BANNER (CONTACTO RÁPIDO) --- */
+.cta-banner {
+    background: var(--primary);
+    background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+    padding: 60px 0;
+    margin-top: 60px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-content { display: flex; align-items: center; justify-content: space-between; gap: 30px; position: relative; z-index: 2; }
+.cta-text h2 { font-size: 2rem; margin-bottom: 10px; color: white; }
+.cta-text p { font-size: 1.1rem; opacity: 0.9; }
+
+.white-btn {
+    background: white; color: var(--primary) !important;
+    padding: 15px 35px; border-radius: 50px; font-weight: 700;
+    font-size: 1.1rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    display: inline-flex; align-items: center; gap: 10px;
+}
+.white-btn:hover { transform: scale(1.05); }
+
+/* --- 8. FOOTER PRO --- */
+.footer { background: #1a1a1a; color: #b0b0b0; padding: 70px 0 20px; border-top: 5px solid var(--accent); }
+.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 50px; margin-bottom: 50px; }
+
+.logo-footer { color: white; font-size: 1.6rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.footer-col h4 { color: white; margin-bottom: 25px; font-size: 1.2rem; }
+
+.footer-col ul li { margin-bottom: 15px; display: flex; align-items: flex-start; gap: 12px; line-height: 1.4; }
+.footer-col ul li i { color: var(--accent); margin-top: 4px; }
+.footer-col ul li a { color: #b0b0b0; }
+.footer-col ul li a:hover { color: var(--accent); padding-left: 5px; }
+
+.copyright { text-align: center; border-top: 1px solid #333; padding-top: 30px; font-size: 0.9rem; }
+
+/* --- 9. RESPONSIVE DESIGN (MÓVIL) --- */
+@media (max-width: 992px) {
+    .hero h1 { font-size: 3rem; }
+}
+
+@media (max-width: 768px) {
+    /* Ajustes generales */
+    .section-header h2 { font-size: 2rem; }
+    
+    /* Header Móvil */
+    .mobile-menu-btn { display: block; }
+    
+    .nav-menu {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Oculto */
+        width: 80%;
+        height: 100vh;
+        background: white;
+        box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+        z-index: 999;
+    }
+
+    .nav-links { 
+        flex-direction: column; 
+        width: 100%;
+    }
+    
+    .nav-links.active { right: 0; /* JS activa esta clase en .nav-links O .nav-menu dependiendo de tu JS.
+        IMPORTANTE: Tu JS actual pone 'active' en .nav-links. 
+        Este CSS asume que .nav-menu es el contenedor. 
+        Si tu JS pone la clase en el UL, el JS debe cambiar para ponerla en el NAV padre o el CSS ajustarse. 
+        PARA ESTE EJEMPLO, EL CSS FUNCIONA SI EL JS AGREGA 'active' AL CONTENEDOR 'nav-menu' o 'nav-links'. 
+        Revisa abajo la corrección. */
+    }
+    
+    /* Corrección para que funcione con tu JS actual que vimos antes */
+    .nav-links {
+        position: fixed; top: 0; right: -100%; width: 75%; height: 100vh;
+        background: white; flex-direction: column; justify-content: center;
+        transition: 0.4s; box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    }
+    .nav-links.active { right: 0; }
+    
+    .nav-links li { margin: 15px 0; }
+    .nav-links a { font-size: 1.2rem; }
+
+    /* Hero Móvil */
+    .hero h1 { font-size: 2.2rem; }
+    .hero-btns { flex-direction: column; width: 100%; }
+    .btn { width: 100%; justify-content: center; }
+
+    /* CTA */
+    .cta-content { flex-direction: column; text-align: center; }
+}

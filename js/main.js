@@ -1,29 +1,42 @@
-// Esperar a que el documento cargue
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. Efecto Sticky Header (Cambia sombra al hacer scroll)
-    const header = document.querySelector('.header');
-    
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            header.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
+    // --- 1. MENÚ MÓVIL (HAMBURGUESA) ---
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    const navMenu = document.querySelector('.nav-links');
+    const header = document.querySelector('.navbar');
+
+    // Toggle del menú al hacer clic
+    menuBtn.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+        // Cambiar el ícono de hamburguesa a X (opcional si usas FontAwesome dinámico)
+        const icon = menuBtn.querySelector('i');
+        if (navMenu.classList.contains('active')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-xmark');
         } else {
-            header.style.boxShadow = "0 2px 10px rgba(0,0,0,0.1)";
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
         }
     });
 
-    // 2. Smooth Scroll para navegadores antiguos
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
+    // Cerrar menú al hacer clic en un enlace (UX Pro)
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+            navMenu.classList.remove('active');
+            const icon = menuBtn.querySelector('i');
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
         });
     });
 
-    console.log("Sitio de Tacuarendí cargado correctamente en modo experto.");
+    // --- 2. EFECTO STICKY NAVBAR (GLASSMORPHISM) ---
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+
+    console.log("⚡ Sistema Tacuarendí v1.0: ONLINE");
 });
