@@ -1,0 +1,325 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obras | Comuna de Tacuarendí</title>
+    <link rel="icon" href="{% static 'core/img/logo.png' %}">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+    <style>
+        body { background: #f8fafc; color: var(--text-main); font-family: 'Inter', sans-serif; }
+        
+        .navbar { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .nav-links a { color: var(--text-main); font-weight: 600; text-decoration: none; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+        
+        .page-header { text-align: center; padding: 80px 20px; background: white; margin-bottom: 30px; border-bottom: 1px solid #e2e8f0; }
+        .page-header h1 { font-family: 'Manrope', sans-serif; font-weight: 800; color: #1e293b; margin-bottom: 15px; font-size: 3rem; letter-spacing: -1px; }
+
+        /* Filtros */
+        .filter-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-bottom: 50px; }
+        .filter-btn { 
+            background: white; border: 2px solid #e2e8f0; padding: 10px 28px; border-radius: 50px; 
+            font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.3s ease; font-family: 'Inter', sans-serif; 
+        }
+        .filter-btn:hover, .filter-btn.active { 
+            background: var(--primary); border-color: var(--primary); color: white; 
+            box-shadow: 0 5px 15px rgba(22, 163, 74, 0.3); transform: translateY(-2px); 
+        }
+
+        /* Grid */
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; width: 95%; max-width: 1800px; margin: 0 auto 60px; }
+        
+        .card-universal { position: relative; border-radius: 24px; overflow: hidden; height: 450px; background: #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: transform 0.3s ease; cursor: pointer; }
+        .card-universal:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .card-img-full { position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s ease; }
+        .card-img-full.active { opacity: 1; z-index: 2; }
+        
+        .card-overlay { 
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 10; pointer-events: none; 
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.6) 50%, transparent 100%); 
+            padding: 40px 25px 25px; 
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        
+        /* Etiqueta Estilo Index */
+        .card-tag { 
+            font-size: 0.65rem; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; 
+            background: var(--primary); color: white; padding: 5px 12px; border-radius: 50px; 
+            margin-bottom: 12px; align-self: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: inline-block;
+        }
+        
+        .card-overlay h3 { color: white; margin: 0 0 5px; font-family: 'Manrope', sans-serif; font-size: 1.4rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        /* Paginación */
+        .pagination-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 80px; align-items: center; }
+        .btn-page { 
+            width: 50px; height: 50px; border-radius: 50%; border: 2px solid #e2e8f0; 
+            display: flex; align-items: center; justify-content: center; 
+            color: #64748b; text-decoration: none; transition: 0.3s; font-weight: 700; background: white;
+        }
+        .btn-page:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .page-info { font-weight: 700; color: #94a3b8; font-size: 0.9rem; margin: 0 20px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Lightbox Pro */
+        .lightbox-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 9999; display: none; align-items: center; justify-content: center; }
+        .lightbox-modal.active { display: flex; }
+        .lightbox-content { position: relative; max-width: 90%; max-height: 90vh; display:flex; align-items:center; }
+        .lightbox-image { max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        
+        /* Botones de navegación */
+        .lightbox-close { position: absolute; top: 30px; right: 30px; color: rgba(255,255,255,0.7); font-size: 3rem; cursor: pointer; transition: 0.3s; z-index: 100; }
+        .lightbox-close:hover { transform: rotate(90deg); color: white; }
+        
+        .lightbox-arrow {
+            position: fixed; top: 50%; transform: translateY(-50%); 
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; font-size: 1.5rem; width: 60px; height: 60px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; 
+            transition: all 0.3s ease; backdrop-filter: blur(5px); z-index: 101;
+        }
+        .lightbox-arrow:hover { background: white; color: black; transform: translateY(-50%) scale(1.1); }
+        .prev { left: 40px; } .next { right: 40px; }
+        
+        @media (max-width: 768px) {
+            .prev { left: 15px; } .next { right: 15px; }
+            .lightbox-arrow { width: 50px; height: 50px; font-size: 1.2rem; background: rgba(0,0,0,0.6); border:none; }
+        }
+        
+        /* Badge de fotos */
+        .photo-count {
+            position: absolute; top: 20px; right: 20px; z-index: 20;
+            background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 700; backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="lightbox" class="lightbox-modal">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        
+        <button class="lightbox-arrow prev" onclick="changeLightboxImage(-1)">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        
+        <div class="lightbox-content">
+            <img id="lightbox-img" class="lightbox-image" src="" alt="Vista previa">
+        </div>
+        
+        <button class="lightbox-arrow next" onclick="changeLightboxImage(1)">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="{% url 'home' %}" class="logo brand-lockup" aria-label="Comuna de Tacuarendí">
+                <img src="{% static 'core/img/logo.png' %}" alt="Escudo Tacuarendí">
+                <span class="brand-text">
+                    <span class="brand-title">Comuna de Tacuarendí</span>
+                    <span class="brand-subtitle">Gestión Lorena Cardozo</span>
+                </span>
+            </a>
+            
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="{% url 'home' %}">Inicio</a></li>
+                    <li><a href="{% url 'novedades_list' %}">Ver Noticias</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container">
+            <h1>Obras en Ejecución</h1>
+            <p style="color: #64748b; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Avance de obras públicas y mejoras estructurales para el pueblo.</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterObras('all')">Todas</button>
+            <button class="filter-btn" onclick="filterObras('infraestructura')">Obras Públicas</button>
+            <button class="filter-btn" onclick="filterObras('educacion')">Educación</button>
+            <button class="filter-btn" onclick="filterObras('deporte')">Deportes</button>
+            <button class="filter-btn" onclick="filterObras('salud')">Salud</button>
+        </div>
+
+        <main class="grid-layout">
+            {% for obra in obras %}
+            <article class="card-universal card-obra" 
+                     data-category="{{ obra.categoria }}"
+                     onmouseenter="startRotation(this)" 
+                     onmouseleave="stopRotation(this)"
+                     onclick="openGalleryLightbox(this)"
+                     data-images='["{{ obra.imagen.url }}"{% for img in obra.imagenes.all %}, "{{ img.imagen.url }}"{% endfor %}]'>
+                
+                <img src="{{ obra.imagen.url }}" class="card-img-full active" loading="lazy">
+                {% for img in obra.imagenes.all %}
+                    <img src="{{ img.imagen.url }}" class="card-img-full" loading="lazy">
+                {% endfor %}
+                
+                {% if obra.imagenes.all %}
+                    <div class="photo-count">
+                        <i class="fa-solid fa-camera"></i> +{{ obra.imagenes.count|add:"1" }}
+                    </div>
+                {% endif %}
+                
+                <div class="card-overlay">
+                    <span class="card-tag">{{ obra.get_categoria_display }}</span>
+                    <h3>{{ obra.titulo }}</h3>
+                    <p>{{ obra.descripcion_corta }}</p>
+                </div>
+            </article>
+            {% empty %}
+            <div style="grid-column:1/-1; text-align:center; padding:50px;">
+                <h3>No hay obras cargadas.</h3>
+            </div>
+            {% endfor %}
+        </main>
+
+        <div class="pagination-container">
+            {% if obras.has_previous %}
+                <a href="?page={{ obras.previous_page_number }}" class="btn-page"><i class="fa-solid fa-chevron-left"></i></a>
+            {% endif %}
+            <span class="page-info">Página {{ obras.number }} de {{ obras.paginator.num_pages }}</span>
+            {% if obras.has_next %}
+                <a href="?page={{ obras.next_page_number }}" class="btn-page"><i class="fa-solid fa-chevron-right"></i></a>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer class="footer footer-fix">
+  <div class="container">
+    <div class="footer-wrapper">
+      <ul class="footer-nav">
+        <li><a href="{% url 'home' %}#inicio">Inicio</a></li>
+        <li><a href="{% url 'home' %}#autoridades">Autoridades</a></li>
+        <li><a href="{% url 'home' %}#novedades">Gestión al Día</a></li>
+        <li><a href="{% url 'home' %}#obras">Obras</a></li>
+        <li><a href="{% url 'home' %}#tramites">Trámites</a></li>
+        <li><a href="{% url 'home' %}#historias">Historias</a></li>
+        <li><a href="{% url 'home' %}#escucha">Reclamos</a></li>
+        <li><a href="{% url 'home' %}#transparencia">Transparencia</a></li>
+        <li><a href="{% url 'home' %}#contacto">Contacto</a></li>
+      </ul>
+
+      <div class="footer-social">
+        <a href="https://www.facebook.com/lorenacardozop" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="https://www.instagram.com/comunatacuarendi/?hl=es" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <i class="fa-brands fa-instagram"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-divider"></div>
+
+    <div class="footer-bottom">
+      <div class="copyright-text">
+        &copy; {% now "Y" %} <strong>Comuna de Tacuarendí</strong>. Gestión Lorena Cardozo.
+      </div>
+      <div class="dev-credit">
+        Desarrollado por Franco Mora
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+    <script>
+        // --- 1. FILTROS ---
+        function filterObras(cat) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.card-obra').forEach(card => {
+                if (cat === 'all' || card.dataset.category === cat) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // --- 2. ROTACIÓN HOVER ---
+        function startRotation(card) {
+            const imgs = card.querySelectorAll('.card-img-full');
+            if (imgs.length <= 1) return;
+            let idx = 0;
+            imgs.forEach((img, i) => { if(img.classList.contains('active')) idx = i; });
+            
+            card.dataset.interval = setInterval(() => {
+                imgs[idx].classList.remove('active');
+                idx = (idx + 1) % imgs.length;
+                imgs[idx].classList.add('active');
+            }, 1200);
+        }
+        function stopRotation(card) {
+            clearInterval(card.dataset.interval);
+            const imgs = card.querySelectorAll('.card-img-full');
+            imgs.forEach(img => img.classList.remove('active'));
+            if(imgs.length > 0) imgs[0].classList.add('active');
+        }
+
+        // --- 3. LIGHTBOX PRO (ARREGLADO PARA CAMBIAR FOTOS) ---
+        let currentImages = [];
+        let currentIndex = 0;
+
+        function openGalleryLightbox(card) {
+            const data = card.getAttribute('data-images');
+            if (!data) return;
+            
+            try {
+                // Parsear el array de fotos
+                currentImages = JSON.parse(data.replace(/'/g, '"'));
+                // Filtrar vacíos
+                currentImages = currentImages.filter(url => url && url.trim() !== "");
+            } catch(e) { return; }
+
+            if (currentImages.length > 0) {
+                currentIndex = 0;
+                updateLightbox();
+                document.getElementById('lightbox').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function changeLightboxImage(dir) {
+            currentIndex += dir;
+            // Loop Infinito
+            if (currentIndex >= currentImages.length) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = currentImages.length - 1;
+            updateLightbox();
+        }
+
+        function updateLightbox() {
+            const img = document.getElementById('lightbox-img');
+            img.style.opacity = 0.5; // Efecto transición
+            setTimeout(() => {
+                img.src = currentImages[currentIndex];
+                img.style.opacity = 1;
+            }, 150);
+        }
+        
+        // Atajos teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight') changeLightboxImage(1);
+            if (e.key === 'ArrowLeft') changeLightboxImage(-1);
+        });
+    </script>
+</body>
+</html>

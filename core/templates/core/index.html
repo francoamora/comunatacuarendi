@@ -1,0 +1,1066 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comuna de Tacuarendí | Sitio Oficial</title>
+    <link rel="preload" as="image" href="{% static 'core/img/gestion.jpeg' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+    <script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+    <script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+
+    <style>
+        /* --- ESTILOS GENERALES (BASE) --- */
+
+        /* 1. HEADER */
+        .navbar {
+            height: 90px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .nav-container {
+            display: flex; justify-content: space-between; align-items: center; height: 100%;
+            margin: 0 auto; width: 95%; max-width: 1800px; padding: 0 20px;
+        }
+        .nav-links { display: flex; gap: 35px; list-style: none; margin: 0; padding: 0; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 0.95rem; transition: 0.2s; position: relative; letter-spacing: -0.01em; }
+        .nav-links a:hover { color: var(--primary); }
+
+        /* 2. TARJETAS UNIFICADAS */
+        .card-universal {
+            position: relative; border-radius: 24px; overflow: hidden; height: 450px; background: #000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer;
+        }
+        .card-universal:hover { transform: translateY(-5px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); }
+        .card-img-full { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.95; transition: transform 0.7s ease; z-index: 1; }
+        .card-universal:hover .card-img-full { transform: scale(1.1); opacity: 1; }
+
+        .card-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0; top: auto; z-index: 10; pointer-events: none;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            padding: 40px 24px 24px 24px; display: flex; flex-direction: column; justify-content: flex-end;
+            transform: translateY(0); transition: padding 0.4s ease;
+        }
+        .card-universal:hover .card-overlay { padding-bottom: 35px; }
+        .card-overlay h3 { margin: 0 0 8px 0; font-size: 1.5rem; font-weight: 800; color: white; font-family: 'Manrope', sans-serif; text-shadow: 0 2px 4px rgba(0,0,0,0.5); line-height: 1.2; }
+        .card-overlay p { font-size: 1rem; color: rgba(255,255,255,0.9); margin: 0; line-height: 1.5; text-shadow: 0 1px 2px rgba(0,0,0,0.5); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-tag { font-size: 0.65rem; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; background: var(--primary); color: white; padding: 5px 12px; border-radius: 50px; margin-bottom: 12px; align-self: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        /* Badge Contador Fotos */
+        .photo-count {
+            position: absolute; top: 20px; right: 20px; z-index: 20;
+            background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 700; backdrop-filter: blur(4px);
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        /* 3. LIGHTBOX PRO */
+        .lightbox-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .lightbox-modal.active { opacity: 1; pointer-events: all; }
+
+        .lightbox-content {
+            position: relative; max-width: 90%; max-height: 90vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .lightbox-image {
+            max-width: 100%; max-height: 85vh; border-radius: 8px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s ease;
+        }
+        .lightbox-modal.active .lightbox-image { transform: scale(1); }
+
+        .lightbox-close {
+            position: absolute; top: 30px; right: 30px; color: rgba(255,255,255,0.6);
+            font-size: 3rem; cursor: pointer; transition: 0.3s; z-index: 100; line-height: 1;
+            background: none; border: none;
+        }
+        .lightbox-close:hover { transform: rotate(90deg); color: white; }
+
+        .lightbox-arrow {
+            position: fixed; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2);
+            font-size: 1.5rem; padding: 0; cursor: pointer; border-radius: 50%;
+            transition: all 0.3s ease; z-index: 101;
+            width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .lightbox-arrow:hover {
+            background: white; color: black; transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        .lightbox-prev { left: 40px; }
+        .lightbox-next { right: 40px; }
+
+        @media (max-width: 768px) {
+            .lightbox-arrow { width: 50px; height: 50px; font-size: 1.2rem; background: rgba(0,0,0,0.6); border: none; }
+            .lightbox-prev { left: 15px; }
+            .lightbox-next { right: 15px; }
+            .lightbox-close { top: 15px; right: 15px; font-size: 2.5rem; }
+        }
+
+        /* 4. BOTONES "VER MÁS" */
+        .center-btn { text-align: center; margin-top: 50px; }
+        .btn-view-more-link {
+            display: inline-block; padding: 14px 40px;
+            background: transparent; border: 2px solid var(--primary); color: var(--primary);
+            font-weight: 800; border-radius: 50px; text-decoration: none; transition: 0.3s;
+            text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;
+        }
+        .btn-view-more-link:hover {
+            background: var(--primary); color: white;
+            box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* --- RESTO ESTILOS --- */
+        .autoridad-layout-wide { display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+        .autoridad-foto-container { width: 100%; max-width: 900px; position: relative; }
+        .autoridad-foto-container img { width: 100%; height: auto; max-height: 500px; object-fit: cover; object-position: center top; border-radius: 20px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); }
+        .autoridad-content { width: 100%; max-width: 1000px; background: white; padding: 20px; }
+        .autoridad-header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 1rem; }
+        .autoridad-cargo { color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; margin-bottom: 5px; }
+        .autoridad-nombre { font-size: 2.2rem; color: var(--text-main); margin: 0; line-height: 1.2; }
+        .autoridad-texto { font-size: 1.05rem; line-height: 1.8; color: #475569; text-align: justify; }
+        @media (max-width: 768px) { .autoridad-texto { text-align: left; } }
+
+        .filter-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 40px; }
+        .filter-btn { background: transparent; border: 2px solid #cbd5e1; padding: 8px 24px; border-radius: 50px; font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.3s ease; font-family: 'Inter', sans-serif; }
+        .filter-btn:hover, .filter-btn.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        input[type="file"] { width: 100%; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.4); border-radius: 10px; padding: 12px; color: rgba(255,255,255,0.9); cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        input[type="file"]:hover { background: rgba(255,255,255,0.1); border-color: #4ade80; }
+        input[type="file"]::file-selector-button { margin-right: 15px; border: none; background: #4ade80; padding: 8px 16px; border-radius: 6px; color: #064e3b; font-weight: 700; cursor: pointer; transition: 0.2s; font-family: 'Inter', sans-serif; }
+
+        .form-group { width: 100%; display: block; margin-bottom: 20px; }
+
+        .contact-card-detail { font-size: 0.9rem; color: #475569; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
+        .contact-card-detail i { color: var(--primary); margin-top: 3px; min-width: 16px; }
+        .contact-card-detail a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .contact-card-detail a:hover { text-decoration: underline; }
+
+        .sug-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .sug-modal-overlay.open { display: flex; opacity: 1; }
+        .sug-modal-card { background: rgba(255, 255, 255, 0.95); width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s ease; }
+        .sug-modal-overlay.open .sug-modal-card { transform: translateY(0); }
+
+        /* CKEDITOR */
+        .form-container-tight {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .form-label {
+            color: rgba(255,255,255,0.95);
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .django-ckeditor-widget { width: 100% !important; display: block !important; }
+        .cke { border-radius: 8px !important; border: 1px solid rgba(255,255,255,0.3) !important; box-shadow: none !important; overflow: hidden !important; }
+        .cke_top { background: rgba(255,255,255,0.9) !important; border-bottom: 1px solid #ddd !important; padding: 6px 8px !important; }
+        .cke_contents { height: 200px !important; }
+        .cke_bottom { background: rgba(255,255,255,0.9) !important; border-top: 1px solid #ddd !important; }
+
+        .form-container-tight input[type="text"],
+        .form-container-tight input[type="email"] {
+            width: 100%;
+            background: rgba(0,0,0,0.3) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            border-radius: 8px;
+            color: white !important;
+            padding: 14px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+        .form-container-tight input:focus {
+            outline: none;
+            background: rgba(0,0,0,0.5) !important;
+            border-color: var(--primary) !important;
+        }
+
+        /* =========================================================
+           MODAL TRÁMITES (GLOBAL, PRO, COMPATIBLE CON .active)
+           ========================================================= */
+        .info-modal-overlay{
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 3000;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .info-modal-overlay.active,
+        .info-modal-overlay.open{
+            display: flex;
+            opacity: 1;
+        }
+        .info-modal-card{
+            width: 100%;
+            max-width: 720px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            position: relative;
+            overflow: hidden;
+        }
+        .info-modal-card .close-modal{
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            border: none;
+            background: none;
+            font-size: 2rem;
+            line-height: 1;
+            cursor: pointer;
+            color: #666;
+        }
+        .info-modal-card .close-modal:hover{ color: #111; }
+
+        .modal-header{
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 22px 22px 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .modal-header h3{
+            margin: 0;
+            color: var(--text-main);
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+        .icon-circle{
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            color: var(--primary);
+            flex: 0 0 auto;
+        }
+        .modal-body{
+            padding: 18px 22px 22px;
+        }
+        .info-row{
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.95rem;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+        .info-row i{
+            margin-top: 3px;
+            color: var(--primary);
+            min-width: 16px;
+        }
+        .modal-footer{
+            padding: 0 22px 22px;
+        }
+        .btn-download{
+            display: inline-block;
+            text-decoration: none;
+            font-weight: 800;
+            border-radius: 999px;
+            padding: 12px 18px;
+            background: var(--primary);
+            color: white;
+        }
+        .btn-download:hover{ filter: brightness(0.95); }
+
+        #tramites .card-tramite[data-modal-id]{ cursor: pointer; }
+        #tramites .card-tramite[data-modal-id]:focus{
+            outline: 3px solid rgba(22,163,74,0.25);
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="preloader">
+        <div class="loader-content">
+            <img src="{% static 'core/img/logo.png' %}" alt="Cargando...">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- ✅ LIGHTBOX ÚNICO -->
+    <div id="lightbox" class="lightbox-modal" role="dialog" aria-modal="true" aria-hidden="true">
+        <button class="lightbox-close" type="button" aria-label="Cerrar" onclick="closeLightbox()">&times;</button>
+
+        <button class="lightbox-arrow lightbox-prev" type="button" onclick="changeLightboxImage(-1)" aria-label="Anterior">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <div class="lightbox-content">
+            <img id="lightbox-img" class="lightbox-image" src="" alt="Vista previa">
+        </div>
+
+        <button class="lightbox-arrow lightbox-next" type="button" onclick="changeLightboxImage(1)" aria-label="Siguiente">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="#inicio" class="logo brand-lockup" aria-label="Comuna de Tacuarendí">
+                <img src="{% static 'core/img/logo.png' %}" alt="Escudo Tacuarendí">
+                <span class="brand-text">
+                    <span class="brand-title">Comuna de Tacuarendí</span>
+                    <span class="brand-subtitle">Gestión Lorena Cardozo</span>
+                </span>
+            </a>
+
+            <div class="nav-menu">
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#autoridades">Autoridades</a></li>
+                        <li><a href="#novedades">Gestión al Día</a></li>
+                        <li><a href="#obras">Obras</a></li>
+                        <li><a href="#tramites">Trámites</a></li>
+                        <li><a href="#historias">Historias</a></li>
+                        <li><a href="#escucha">Reclamos</a></li>
+                        <li><a href="#transparencia">Transparencia</a></li>
+                        <li><a href="#contacto" class="btn-nav">Contacto</a></li>
+                    </ul>
+                </nav>
+                <button class="mobile-menu-btn" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <section id="inicio" class="hero">
+        <div class="hero-bg" style="background-image: url({% static 'core/img/gestion.jpeg' %});"></div>
+        <div class="hero-overlay"></div>
+        <div class="container hero-container">
+            <div class="hero-layout">
+                <div class="hero-text">
+                    <h1 class="reveal">Bienvenidos a <br>Tacuarendí</h1>
+                    <p class="reveal">Innovación, transparencia y trabajo en equipo. Construyendo juntos el futuro.</p>
+                </div>
+
+                <div class="scroll-down-indicator reveal" style="margin-top: 40px;">
+                    <span style="font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; display: block; color: rgba(255,255,255,0.8);">Descubrí más</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if autoridad %}
+    <section id="autoridades" class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Nuestro Equipo</h2>
+                <p class="subtitle">Compromiso y trabajo por Tacuarendí.</p>
+            </div>
+
+            <div class="autoridad-layout-wide reveal">
+                <div class="autoridad-foto-container">
+                    {% if autoridad.foto %}
+                        <img src="{{ autoridad.foto.url }}" alt="Equipo de Gestión">
+                    {% else %}
+                        <div style="height:400px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; border-radius:20px;">
+                            <i class="fa-solid fa-user" style="font-size:5rem; color:#ccc;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="autoridad-content">
+                    <div class="autoridad-header">
+                        <div class="autoridad-cargo">{{ autoridad.cargo }}</div>
+                        <h2 class="autoridad-nombre">{{ autoridad.nombre }}</h2>
+                    </div>
+
+                    <div class="autoridad-texto">
+                        {{ autoridad.mensaje|safe }}
+                    </div>
+
+                    {% if autoridad.firma %}
+                        <div style="margin-top: 30px; text-align: center;">
+                            <img src="{{ autoridad.firma.url }}" alt="Firma" class="firma-img" style="max-height: 80px; width: auto; opacity: 0.8;">
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <section id="novedades" class="section bg-light">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Gestión al Día</h2>
+                <p class="subtitle">Institucionales, programas y la actualidad de Tacuarendí.</p>
+            </div>
+
+            <div class="grid-layout" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+                {% for novedad in novedades %}
+                <article class="card-universal reveal"
+                         {% if novedad.imagen %}
+                         onclick="openGalleryLightbox(this)"
+                         data-images='["{{ novedad.imagen.url }}"]'
+                         {% endif %}>
+                    {% if novedad.imagen %}
+                        <img src="{{ novedad.imagen.url }}" class="card-img-full" alt="{{ novedad.titulo }}">
+                    {% else %}
+                        <div style="width:100%; height:100%; background:#111; display:flex; align-items:center; justify-content:center; position:absolute; top:0;">
+                            <i class="fa-regular fa-newspaper" style="font-size:3rem; color:#333;"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-overlay">
+                        <span class="card-tag">{{ novedad.tipo.nombre }}</span>
+                        <h3>{{ novedad.titulo }}</h3>
+                        {% if novedad.bajada %}
+                            <p>{{ novedad.bajada|truncatechars:110 }}</p>
+                        {% endif %}
+                    </div>
+                </article>
+                {% empty %}
+                <div style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px; background: white; border-radius: 12px;">
+                    <i class="fa-solid fa-bullhorn" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 10px;"></i>
+                    <p>Próximamente novedades de gestión.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="center-btn reveal">
+                <a href="{% url 'novedades_list' %}" class="btn-view-more-link">Ver más noticias <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <section id="obras" class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Obras en Ejecución</h2>
+                <p class="subtitle">Transformando nuestra realidad con hechos concretos.</p>
+            </div>
+
+            <div class="filter-container reveal">
+                <button class="filter-btn active" onclick="filterObras('all', this)">Todas</button>
+                <button class="filter-btn" onclick="filterObras('infraestructura', this)">Obras Públicas</button>
+                <button class="filter-btn" onclick="filterObras('educacion', this)">Educación</button>
+                <button class="filter-btn" onclick="filterObras('deporte', this)">Deportes</button>
+                <button class="filter-btn" onclick="filterObras('salud', this)">Salud</button>
+            </div>
+
+            <div class="grid-layout">
+                {% for obra in obras %}
+                <article class="card-universal card-obra reveal"
+                         data-category="{{ obra.categoria }}"
+                         onclick="openGalleryLightbox(this)"
+                         data-images='["{{ obra.imagen.url }}"{% for img in obra.imagenes.all %}, "{{ img.imagen.url }}"{% endfor %}]'>
+
+                    <img src="{{ obra.imagen.url }}" class="card-img-full" loading="lazy" alt="{{ obra.titulo }}">
+
+                    {% if obra.imagenes.count %}
+                        <div class="photo-count">
+                            <i class="fa-solid fa-camera"></i> +{{ obra.imagenes.count|add:"1" }}
+                        </div>
+                    {% endif %}
+
+                    <div class="card-overlay">
+                        <span class="card-tag">{{ obra.get_categoria_display }}</span>
+                        <h3>{{ obra.titulo }}</h3>
+                        <p>{{ obra.descripcion_corta }}</p>
+                    </div>
+                </article>
+                {% empty %}
+                <p style="text-align: center; grid-column: 1/-1;">No hay obras cargadas aún.</p>
+                {% endfor %}
+            </div>
+
+            <div class="center-btn reveal">
+                <a href="{% url 'obras_list' %}" class="btn-view-more-link">Ver más obras <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================
+         TRÁMITES (CARDS SOLAS)
+         ========================= -->
+    <section id="tramites" class="section bg-light">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Guía de Trámites</h2>
+                <p class="subtitle">Todo lo que podés realizar en el Edificio Comunal.</p>
+            </div>
+
+            <div class="grid-layout">
+                {% for tramite in tramites %}
+                <div class="card-tramite reveal"
+                     data-modal-id="modal-tramite-{{ tramite.id }}"
+                     role="button"
+                     tabindex="0"
+                     aria-haspopup="dialog"
+                     aria-controls="modal-tramite-{{ tramite.id }}">
+                    <div class="icon-box">
+                        <i class="{{ tramite.icono|default:'fa-solid fa-file-signature' }}"></i>
+                    </div>
+                    <h3>{{ tramite.nombre }}</h3>
+                    <p style="color: #666; margin-bottom: 20px; font-size: 0.95rem;">
+                        {{ tramite.descripcion_breve }}
+                    </p>
+
+                    <button class="btn-link"
+                            type="button"
+                            data-modal-id="modal-tramite-{{ tramite.id }}"
+                            style="background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;">
+                        Ver requisitos y horarios <i class="fa-solid fa-plus-circle"></i>
+                    </button>
+                </div>
+                {% empty %}
+                <p style="text-align: center; grid-column: 1/-1;">Cargando información...</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section id="historias" class="section section-stories">
+        <div class="story-bg-layer" style="background-image: url('{% static 'core/img/cana-bg.jpg' %}');"></div>
+        <div class="story-overlay"></div>
+
+        <div class="container relative-z">
+            <div class="section-header reveal text-white">
+                <h2 style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Contanos tu Historia</h2>
+                <p class="subtitle" style="color: rgba(255,255,255,0.9);">La identidad del pueblo la hacemos entre todos.</p>
+            </div>
+
+            {% if messages %}
+            <div class="reveal" style="max-width: 700px; margin: 0 auto 18px;">
+                {% for message in messages %}
+                <div role="status" style="padding: 14px 16px; border-radius: 12px; font-weight: 600; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); color: white;">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="form-container-tight reveal">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="historia">
+
+                    <div class="form-group">
+                        <label class="form-label">Título del Relato</label>
+                        {{ form.titulo }}
+                    </div>
+                    <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">Tu Nombre</label>
+                            {{ form.autor }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tu Email</label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Escribí tu Historia</label>
+                        {{ form.contenido }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Subir Foto (Opcional)</label>
+                        {{ form.imagen }}
+                    </div>
+
+                    <button type="submit" class="btn-submit btn-accent" style="width: 100%; margin-top: 10px; background: var(--primary); color: white; padding: 15px; border-radius: 50px; font-weight: 700; border: none; cursor: pointer; transition: 0.3s;">Enviar Historia</button>
+                    <p style="margin: 14px 0 0; color: rgba(255,255,255,0.7); font-size: 0.85rem; text-align: center;">Tu historia queda <strong>pendiente de aprobación</strong>.</p>
+                </form>
+            </div>
+
+            <div class="section-header reveal" style="margin-top: 80px;">
+                <h2 style="color: white; margin-bottom: 6px;">Relatos del Pueblo</h2>
+                <p class="subtitle" style="margin: 0 auto; text-align: center; max-width: 600px; color: rgba(255,255,255,0.9);">
+                    Memorias compartidas por nuestros vecinos.
+                </p>
+            </div>
+
+            {% if historias_publicadas %}
+            <div class="grid-layout">
+                {% for h in historias_publicadas %}
+                <article class="card-universal reveal" style="height:auto; min-height:400px; background:white; color:var(--text-main);"
+                         {% if h.imagen %}
+                         onclick="openGalleryLightbox(this)"
+                         data-images='["{{ h.imagen.url }}"]'
+                         {% endif %}>
+                    <div style="height:250px; overflow:hidden; position:relative;">
+                        <div style="position:absolute; top:15px; right:15px; background:white; padding:5px 12px; border-radius:10px; z-index:2; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                            {{ h.fecha_publicacion|date:"d M" }}
+                        </div>
+                        {% if h.imagen %}
+                            <img src="{{ h.imagen.url }}" style="width:100%; height:100%; object-fit:cover;" alt="{{ h.titulo }}">
+                        {% else %}
+                            <div style="width:100%; height:100%; background:#f1f5f9; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-image" style="color:#cbd5e1; font-size:3rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div style="padding:24px;">
+                        <h3 style="font-size:1.3rem; margin-bottom:10px; font-weight:800;">{{ h.titulo }}</h3>
+                        <div style="font-size:0.95rem; color:#475569; margin-bottom:15px;">{{ h.contenido|safe|truncatewords_html:30 }}</div>
+                        <div style="border-top:1px solid #eee; padding-top:10px; color:var(--primary); font-weight:700; font-size:0.9rem;">
+                            <i class="fa-solid fa-pen-nib"></i> {{ h.autor }}
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="reveal" style="text-align:center; padding: 40px 0; background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.3); max-width: 800px; margin: 0 auto;">
+                <i class="fa-solid fa-book-open" style="font-size: 2rem; color: rgba(255,255,255,0.6); margin-bottom: 15px;"></i>
+                <p style="margin:0; color: rgba(255,255,255,0.9); font-weight:500;">Todavía no hay historias publicadas. <br>¡Sé el primero en compartir una!</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section id="escucha" class="section bg-light">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Escucha ciudadana</h2>
+                <p class="subtitle">Ayudanos a mejorar Tacuarendí.</p>
+            </div>
+
+            <div class="grid-layout" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                <div class="card-tramite reveal">
+                    <div class="icon-box" style="background:#dcfce7; color:#16a34a;"><i class="fa-solid fa-bullhorn"></i></div>
+                    <h3>Hacer un reclamo</h3>
+                    <p style="font-size: 0.95rem; margin-bottom: 18px; color: #666;">Contanos el problema (bacheo, luces, etc) y hacele seguimiento.</p>
+                    <a href="{% url 'escucha_create' %}" class="btn-link">Iniciar reclamo <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+
+                <div class="card-tramite reveal">
+                    <div class="icon-box" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    <h3>Consultar Reclamo</h3>
+                    <p style="font-size: 0.95rem; margin-bottom: 18px; color: #666;">Ingresá tu DNI para ver el estado de tus solicitudes.</p>
+                    <a href="{% url 'escucha_consultar' %}" class="btn-link">Ver mis reclamos <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+
+                <div class="card-tramite reveal">
+                    <div class="icon-box" style="background:#fef3c7; color:#d97706;"><i class="fa-regular fa-lightbulb"></i></div>
+                    <h3>Buzón de Sugerencias</h3>
+                    <p style="font-size: 0.95rem; margin-bottom: 18px; color: #666;">Envianos tu idea o crítica constructiva de forma <strong>anónima</strong>.</p>
+                    <button class="btn-link" onclick="openSugModal()" style="border:none; background:none; cursor:pointer;">
+                        Dejar sugerencia <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="sugModal" class="sug-modal-overlay" aria-hidden="true">
+        <div class="sug-modal-card">
+            <button onclick="closeSugModal()" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:1.5rem; cursor:pointer; color:#666;">&times;</button>
+            <h3 style="margin-bottom:15px; color:var(--text-main);">Tu opinión nos importa</h3>
+            <p style="font-size:0.9rem; color:#666; margin-bottom:20px;">Esta sugerencia es 100% anónima. No guardamos tus datos.</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="sugerencia">
+                <div class="form-group">
+                    <label style="font-size:0.85rem; font-weight:700; margin-bottom:5px; display:block;">Área</label>
+                    {{ sug_form.area }}
+                </div>
+                <div class="form-group">
+                    <label style="font-size:0.85rem; font-weight:700; margin-bottom:5px; display:block;">Mensaje</label>
+                    {{ sug_form.mensaje }}
+                </div>
+                <div class="form-group">
+                    <label style="font-size:0.85rem; font-weight:700; margin-bottom:5px; display:block;">Seguridad: {{ sug_captcha_label }}</label>
+                    {{ sug_form.captcha }}
+                </div>
+                <button type="submit" class="btn-submit" style="width:100%;">Enviar Anónimamente</button>
+            </form>
+        </div>
+    </div>
+
+    <section id="transparencia" class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Transparencia Activa</h2>
+                <p class="subtitle">Acceso público a balances, ordenanzas y boletines oficiales.</p>
+            </div>
+
+            <div class="grid-layout">
+                {% for doc in documentos %}
+                <a href="{{ doc.archivo.url }}" target="_blank" class="card-doc reveal">
+                    <div class="doc-icon">
+                        {% if 'pdf' in doc.archivo.url %}
+                            <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i>
+                        {% elif 'xls' in doc.archivo.url %}
+                            <i class="fa-solid fa-file-excel" style="color: #16a34a;"></i>
+                        {% else %}
+                            <i class="fa-solid fa-file-lines" style="color: #3b82f6;"></i>
+                        {% endif %}
+                    </div>
+                    <div class="doc-info">
+                        <span class="doc-tag">{{ doc.get_tipo_display }}</span>
+                        <h3>{{ doc.titulo }}</h3>
+                        <span class="doc-date"><i class="fa-regular fa-calendar"></i> {{ doc.fecha_publicacion|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="doc-arrow">
+                        <i class="fa-solid fa-download"></i>
+                    </div>
+                </a>
+                {% empty %}
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #f8fafc; border-radius: 20px;">
+                    <i class="fa-solid fa-folder-open" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 10px;"></i>
+                    <p style="color: #64748b; font-weight: 600;">Próximamente se cargarán documentos.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section id="contacto" class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>Contacto</h2>
+                <p class="subtitle">Contactos útiles por área.</p>
+            </div>
+
+            <div class="grid-layout" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                {% for c in servicios_contacto %}
+                <div class="card-tramite reveal">
+                    <div class="icon-box"><i class="{{ c.icono }}"></i></div>
+                    <h3>{{ c.titulo }}</h3>
+
+                    <div style="margin-top: 15px;">
+                        {% if c.encargado %}
+                            <div class="contact-card-detail"><i class="fa-regular fa-user"></i> <span>{{ c.encargado }}</span></div>
+                        {% endif %}
+                        {% if c.telefono %}
+                            <div class="contact-card-detail"><i class="fa-brands fa-whatsapp"></i> <a href="tel:{{ c.telefono }}">{{ c.telefono }}</a></div>
+                        {% endif %}
+                        {% if c.email %}
+                            <div class="contact-card-detail"><i class="fa-regular fa-envelope"></i> <span>{{ c.email }}</span></div>
+                        {% endif %}
+                        {% if c.horario %}
+                            <div class="contact-card-detail"><i class="fa-regular fa-clock"></i> <span>{{ c.horario }}</span></div>
+                        {% endif %}
+                        {% if c.direccion %}
+                            <div class="contact-card-detail"><i class="fa-solid fa-location-dot"></i> <span>{{ c.direccion }}</span></div>
+                        {% endif %}
+                        {% if c.descripcion %}
+                            <p class="contact-desc" style="margin-top:10px; border-top:1px solid #eee; padding-top:10px;">{{ c.descripcion }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="card-tramite reveal" style="grid-column: 1/-1; text-align:center;">
+                    <h3 style="margin-top:0;">Contactos en preparación</h3>
+                    <p style="margin:0; color:#666;">En breve publicaremos los números.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <a href="https://wa.me/543482553976" class="whatsapp-float" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i></a>
+
+    <footer class="footer footer-fix">
+  <div class="container">
+    <div class="footer-wrapper">
+      <ul class="footer-nav">
+        <li><a href="{% url 'home' %}#inicio">Inicio</a></li>
+        <li><a href="{% url 'home' %}#autoridades">Autoridades</a></li>
+        <li><a href="{% url 'home' %}#novedades">Gestión al Día</a></li>
+        <li><a href="{% url 'home' %}#obras">Obras</a></li>
+        <li><a href="{% url 'home' %}#tramites">Trámites</a></li>
+        <li><a href="{% url 'home' %}#historias">Historias</a></li>
+        <li><a href="{% url 'home' %}#escucha">Reclamos</a></li>
+        <li><a href="{% url 'home' %}#transparencia">Transparencia</a></li>
+        <li><a href="{% url 'home' %}#contacto">Contacto</a></li>
+      </ul>
+
+      <div class="footer-social">
+        <a href="https://www.facebook.com/lorenacardozop" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="https://www.instagram.com/comunatacuarendi/?hl=es" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <i class="fa-brands fa-instagram"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-divider"></div>
+
+    <div class="footer-bottom">
+      <div class="copyright-text">
+        &copy; {% now "Y" %} <strong>Comuna de Tacuarendí</strong>. Gestión Lorena Cardozo.
+      </div>
+      <div class="dev-credit">
+        Desarrollado por Franco Mora
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+    <!-- =========================
+         MODALES TRÁMITES (AL FINAL DEL BODY, ANTI-RECORTE)
+         ========================= -->
+    {% for tramite in tramites %}
+    <div id="modal-tramite-{{ tramite.id }}" class="info-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-tramite-title-{{ tramite.id }}">
+        <div class="info-modal-card">
+            <button class="close-modal" type="button" aria-label="Cerrar">&times;</button>
+            <div class="modal-header">
+                <div class="icon-circle">
+                    <i class="{{ tramite.icono|default:'fa-solid fa-file' }}"></i>
+                </div>
+                <h3 id="modal-tramite-title-{{ tramite.id }}">{{ tramite.nombre }}</h3>
+            </div>
+            <div class="modal-body">
+                {% if tramite.responsable %}
+                <div class="info-row"><i class="fa-solid fa-user-tie"></i><div><strong>Responsable:</strong> {{ tramite.responsable }}</div></div>
+                {% endif %}
+                {% if tramite.horario_atencion %}
+                <div class="info-row"><i class="fa-regular fa-clock"></i><div><strong>Horarios:</strong> {{ tramite.horario_atencion }}</div></div>
+                {% endif %}
+                {% if tramite.telefono_area %}
+                <div class="info-row"><i class="fa-solid fa-phone"></i><div><strong>Contacto:</strong> {{ tramite.telefono_area }}</div></div>
+                {% endif %}
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+                <h4 style="margin-bottom: 10px; color: var(--text-main);">Requisitos:</h4>
+                <div class="modal-requirements">
+                    {% if tramite.requisitos %}
+                        {{ tramite.requisitos|linebreaks }}
+                    {% else %}
+                        <p>Consultar en administración.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% if tramite.archivo_pdf %}
+            <div class="modal-footer">
+                <a href="{{ tramite.archivo_pdf.url }}" target="_blank" class="btn-download">Descargar Formulario PDF</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- 👇 main.js en defer para evitar carreras (y que tu script de trámites sea el que manda) -->
+    <script src="{% static 'core/js/main.js' %}" defer></script>
+
+    <script>
+        // =========================
+        // 1) LIGHTBOX
+        // =========================
+        let currentImages = [];
+        let currentIndex = 0;
+
+        function openGalleryLightbox(card) {
+            const data = card?.getAttribute?.('data-images');
+            if (!data) return;
+
+            try {
+                currentImages = JSON.parse(data);
+            } catch (e) {
+                const img = card.querySelector?.('img');
+                currentImages = img?.src ? [img.src] : [];
+            }
+
+            currentImages = (currentImages || []).filter(Boolean);
+            if (!currentImages.length) return;
+
+            currentIndex = 0;
+            updateLightbox();
+
+            const lb = document.getElementById('lightbox');
+            lb.classList.add('active');
+            lb.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lb = document.getElementById('lightbox');
+            lb.classList.remove('active');
+            lb.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        function changeLightboxImage(dir) {
+            if (!currentImages.length) return;
+            currentIndex += dir;
+            if (currentIndex >= currentImages.length) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = currentImages.length - 1;
+            updateLightbox();
+        }
+
+        function updateLightbox() {
+            const img = document.getElementById('lightbox-img');
+            if (!img) return;
+            img.style.opacity = 0;
+            setTimeout(() => {
+                img.src = currentImages[currentIndex];
+                img.style.opacity = 1;
+            }, 150);
+        }
+
+        (() => {
+            const lb = document.getElementById('lightbox');
+            if (!lb) return;
+
+            lb.addEventListener('click', (e) => {
+                if (e.target === lb) closeLightbox();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (!lb.classList.contains('active')) return;
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowRight') changeLightboxImage(1);
+                if (e.key === 'ArrowLeft') changeLightboxImage(-1);
+            });
+        })();
+
+        // =========================
+        // 2) FILTROS OBRAS
+        // =========================
+        function filterObras(cat, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            document.querySelectorAll('.card-obra').forEach(card => {
+                const show = (cat === 'all' || card.dataset.category === cat);
+                card.style.display = show ? 'block' : 'none';
+                if (show) card.style.animation = 'fadeIn 0.6s ease forwards';
+            });
+        }
+
+        // =========================
+        // 3) MODALES TRÁMITES (PRO + ANTI "ABRE Y CIERRA")
+        // =========================
+        (() => {
+            if (window.__TRAMITES_MODAL_V3__) return;
+            window.__TRAMITES_MODAL_V3__ = true;
+
+            const section = document.getElementById('tramites');
+            if (!section) return;
+
+            let lastFocused = null;
+
+            const getModal = (id) => (id ? document.getElementById(id) : null);
+
+            function openModal(modal, opener) {
+                if (!modal) return;
+                lastFocused = opener || document.activeElement;
+
+                modal.classList.add('active');
+                modal.classList.remove('open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+
+                const closeBtn = modal.querySelector('.close-modal');
+                if (closeBtn) closeBtn.focus({ preventScroll: true });
+            }
+
+            function closeAll() {
+                document.querySelectorAll('.info-modal-overlay.active, .info-modal-overlay.open').forEach(m => {
+                    m.classList.remove('active');
+                    m.classList.remove('open');
+                    m.setAttribute('aria-hidden', 'true');
+                });
+                document.body.style.overflow = '';
+                if (lastFocused && typeof lastFocused.focus === 'function') {
+                    lastFocused.focus({ preventScroll: true });
+                }
+                lastFocused = null;
+            }
+
+            // Delegación CAPTURE: intercepta antes de cualquier handler global que quiera cerrar cosas
+            section.addEventListener('click', (e) => {
+                const opener = e.target.closest('[data-modal-id]');
+                if (!opener) return;
+
+                // Si tocó un link real, lo dejamos
+                if (e.target.closest('a')) return;
+
+                // Evita doble comportamiento (y cierra instantáneo)
+                e.preventDefault();
+                e.stopPropagation();
+
+                const id = opener.getAttribute('data-modal-id');
+                const modal = getModal(id);
+
+                // Abrimos en el próximo frame: mata el "open->close" por click global
+                requestAnimationFrame(() => openModal(modal, opener));
+            }, true);
+
+            // Teclado en las cards (Enter / Space)
+            section.addEventListener('keydown', (e) => {
+                const card = e.target.closest('.card-tramite[data-modal-id]');
+                if (!card) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const id = card.getAttribute('data-modal-id');
+                    const modal = getModal(id);
+                    requestAnimationFrame(() => openModal(modal, card));
+                }
+            }, true);
+
+            // Cerrar: X o click afuera
+            document.addEventListener('click', (e) => {
+                const closeBtn = e.target.closest('.info-modal-overlay .close-modal');
+                if (closeBtn) {
+                    e.preventDefault();
+                    closeAll();
+                    return;
+                }
+
+                const overlay = e.target.closest('.info-modal-overlay.active, .info-modal-overlay.open');
+                if (overlay && e.target === overlay) {
+                    closeAll();
+                }
+            });
+
+            // Cerrar: ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const anyOpen = document.querySelector('.info-modal-overlay.active, .info-modal-overlay.open');
+                    if (anyOpen) closeAll();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

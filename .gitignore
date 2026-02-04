@@ -1,0 +1,12 @@
+# .gitignore MODIFICADO
+*.pyc
+*~
+__pycache__
+myvenv
+env
+venv
+.env
+/static
+.DS_Store
+# db.sqlite3  <-- BORRADA O COMENTADA
+# /media      <-- BORRADA O COMENTADA

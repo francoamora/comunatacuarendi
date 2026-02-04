@@ -1,0 +1,188 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noticias | Comuna de Tacuarendí</title>
+    <link rel="icon" href="{% static 'core/img/logo.png' %}">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+    <style>
+        /* Ajustes específicos para esta página */
+        body { background: #f8fafc; }
+        
+        .navbar { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .nav-links a { color: var(--text-main); font-weight: 600; text-decoration: none; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+
+        .page-header { text-align: center; padding: 80px 20px; background: white; margin-bottom: 50px; border-bottom: 1px solid #e2e8f0; }
+        .page-header h1 { font-family: 'Manrope', sans-serif; font-weight: 800; color: #1e293b; margin-bottom: 15px; font-size: 3rem; letter-spacing: -1px; }
+        
+        /* Grid */
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; width: 95%; max-width: 1800px; margin: 0 auto 60px; }
+        
+        .card-universal { position: relative; border-radius: 24px; overflow: hidden; height: 450px; background: #000; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: transform 0.3s ease; cursor: pointer; }
+        .card-universal:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .card-img-full { width: 100%; height: 100%; object-fit: cover; opacity: 0.95; transition: transform 0.6s ease; }
+        .card-universal:hover .card-img-full { transform: scale(1.05); }
+        
+        .card-overlay { 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.6) 50%, transparent 100%); 
+            padding: 40px 25px 25px; 
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        
+        /* Etiqueta Estilo Index */
+        .card-tag { 
+            font-size: 0.65rem; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; 
+            background: var(--primary); color: white; padding: 5px 12px; border-radius: 50px; 
+            margin-bottom: 12px; align-self: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: inline-block;
+        }
+        
+        .card-overlay h3 { color: white; margin: 0 0 8px; font-family: 'Manrope', sans-serif; font-size: 1.4rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        
+        /* Paginación */
+        .pagination-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 80px; align-items: center; }
+        .btn-page { 
+            width: 50px; height: 50px; border-radius: 50%; border: 2px solid #e2e8f0; 
+            display: flex; align-items: center; justify-content: center; 
+            color: #64748b; text-decoration: none; transition: 0.3s; font-weight: 700; background: white;
+        }
+        .btn-page:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .page-info { font-weight: 700; color: #94a3b8; font-size: 0.9rem; margin: 0 20px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Lightbox */
+        .lightbox-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 9999; display: none; align-items: center; justify-content: center; }
+        .lightbox-modal.active { display: flex; }
+        .lightbox-image { max-width: 90%; max-height: 85vh; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        .lightbox-close { position: absolute; top: 30px; right: 30px; color: white; font-size: 3rem; cursor: pointer; transition: 0.3s; }
+    </style>
+</head>
+<body>
+
+    <div id="lightbox" class="lightbox-modal" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" class="lightbox-image" src="" alt="Vista previa">
+    </div>
+
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="{% url 'home' %}" class="logo brand-lockup" aria-label="Comuna de Tacuarendí">
+                <img src="{% static 'core/img/logo.png' %}" alt="Escudo Tacuarendí">
+                <span class="brand-text">
+                    <span class="brand-title">Comuna de Tacuarendí</span>
+                    <span class="brand-subtitle">Gestión Lorena Cardozo</span>
+                </span>
+            </a>
+            
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="{% url 'home' %}">Inicio</a></li>
+                    <li><a href="{% url 'obras_list' %}">Ver Obras</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container">
+            <h1>Gestión al Día</h1>
+            <p style="color: #64748b; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Enterate de las últimas novedades, programas y actividades de la comuna.</p>
+        </div>
+    </header>
+
+    <main class="grid-layout">
+        {% for novedad in novedades %}
+        <article class="card-universal" onclick="openLightbox('{% if novedad.imagen %}{{ novedad.imagen.url }}{% endif %}')">
+            {% if novedad.imagen %}
+                <img src="{{ novedad.imagen.url }}" class="card-img-full" loading="lazy">
+            {% else %}
+                <div style="width:100%; height:100%; background:#222; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-newspaper" style="font-size:3rem; color:#555;"></i></div>
+            {% endif %}
+            
+            <div class="card-overlay">
+                <span class="card-tag">{{ novedad.tipo.nombre }}</span>
+                <h3>{{ novedad.titulo }}</h3>
+                <p style="color:rgba(255,255,255,0.8); font-size:0.9rem;">
+                    <i class="fa-regular fa-calendar" style="margin-right:5px;"></i> {{ novedad.fecha|date:"d M, Y" }}
+                </p>
+            </div>
+        </article>
+        {% empty %}
+        <div style="grid-column:1/-1; text-align:center; padding:50px;">
+            <h3>No hay noticias cargadas.</h3>
+        </div>
+        {% endfor %}
+    </main>
+
+    <div class="pagination-container">
+        {% if novedades.has_previous %}
+            <a href="?page={{ novedades.previous_page_number }}" class="btn-page"><i class="fa-solid fa-chevron-left"></i></a>
+        {% endif %}
+        
+        <span class="page-info">Página {{ novedades.number }} de {{ novedades.paginator.num_pages }}</span>
+        
+        {% if novedades.has_next %}
+            <a href="?page={{ novedades.next_page_number }}" class="btn-page"><i class="fa-solid fa-chevron-right"></i></a>
+        {% endif %}
+    </div>
+
+    <footer class="footer footer-fix">
+  <div class="container">
+    <div class="footer-wrapper">
+      <ul class="footer-nav">
+        <li><a href="{% url 'home' %}#inicio">Inicio</a></li>
+        <li><a href="{% url 'home' %}#autoridades">Autoridades</a></li>
+        <li><a href="{% url 'home' %}#novedades">Gestión al Día</a></li>
+        <li><a href="{% url 'home' %}#obras">Obras</a></li>
+        <li><a href="{% url 'home' %}#tramites">Trámites</a></li>
+        <li><a href="{% url 'home' %}#historias">Historias</a></li>
+        <li><a href="{% url 'home' %}#escucha">Reclamos</a></li>
+        <li><a href="{% url 'home' %}#transparencia">Transparencia</a></li>
+        <li><a href="{% url 'home' %}#contacto">Contacto</a></li>
+      </ul>
+
+      <div class="footer-social">
+        <a href="https://www.facebook.com/lorenacardozop" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="https://www.instagram.com/comunatacuarendi/?hl=es" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <i class="fa-brands fa-instagram"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-divider"></div>
+
+    <div class="footer-bottom">
+      <div class="copyright-text">
+        &copy; {% now "Y" %} <strong>Comuna de Tacuarendí</strong>. Gestión Lorena Cardozo.
+      </div>
+      <div class="dev-credit">
+        Desarrollado por Franco Mora
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+    <script>
+        function openLightbox(src) {
+            if(!src) return;
+            const lb = document.getElementById('lightbox');
+            document.getElementById('lightbox-img').src = src;
+            lb.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+</html>

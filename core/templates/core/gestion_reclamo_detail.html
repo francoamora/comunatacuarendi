@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reclamo {{ reclamo.codigo }} — Gestión</title>
+  <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="{% url 'home' %}" class="logo brand-lockup" aria-label="Volver al inicio">
+        <img src="{% static 'core/img/logo.jpeg' %}" alt="Escudo Tacuarendí">
+        <span class="brand-text">
+          <span class="brand-title">Comuna de Tacuarendí</span>
+          <span class="brand-subtitle">Gestión Lorena Cardozo</span>
+        </span>
+      </a>
+      <div class="nav-menu">
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'gestion_reclamo_list' %}">Reclamos</a></li>
+            <li><a href="/admin/" class="btn-nav">Admin</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <section class="section bg-light">
+    <div class="container">
+      <div class="form-container" style="max-width: 980px; margin: 0 auto;">
+
+        <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+          <div>
+            <h2 style="margin:0; font-family:Manrope;">Reclamo {{ reclamo.codigo }}</h2>
+            <p class="subtitle" style="margin:10px 0 0;">
+              DNI: <strong>{{ reclamo.dni }}</strong> • {{ reclamo.nombre_apellido }}
+            </p>
+          </div>
+
+          <div style="font-weight:900;">
+            {% if reclamo.estado == "resuelto" %}
+              <span style="padding:10px 14px; border-radius:999px; background:#dcfce7; color:#166534;">Resuelto</span>
+            {% elif reclamo.estado == "en_proceso" %}
+              <span style="padding:10px 14px; border-radius:999px; background:#fef3c7; color:#92400e;">En proceso</span>
+            {% else %}
+              <span style="padding:10px 14px; border-radius:999px; background:#e0f2fe; color:#075985;">Recibido</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Datos -->
+        <div class="grid-layout" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 14px;">
+          <div class="card-tramite" style="padding:18px;">
+            <div style="color:#6b7280; font-weight:800;">Secretaría</div>
+            <div style="font-weight:900; color:#111827; margin-top:6px;">{{ reclamo.secretaria.nombre }}</div>
+            {% if reclamo.categoria %}
+              <div style="color:#6b7280; margin-top:8px;">Categoría: <strong style="color:#111827;">{{ reclamo.categoria.nombre }}</strong></div>
+            {% elif reclamo.categoria_libre %}
+              <div style="color:#6b7280; margin-top:8px;">Categoría (libre): <strong style="color:#111827;">{{ reclamo.categoria_libre }}</strong></div>
+            {% endif %}
+          </div>
+
+          <div class="card-tramite" style="padding:18px;">
+            <div style="color:#6b7280; font-weight:800;">Contacto</div>
+            <div style="margin-top:8px; color:#111827;">
+              {% if reclamo.telefono %}<div><strong>Tel:</strong> {{ reclamo.telefono }}</div>{% endif %}
+              {% if reclamo.email %}<div><strong>Email:</strong> {{ reclamo.email }}</div>{% endif %}
+              {% if reclamo.barrio %}<div><strong>Barrio:</strong> {{ reclamo.barrio }}</div>{% endif %}
+              {% if reclamo.direccion %}<div><strong>Dirección:</strong> {{ reclamo.direccion }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="card-tramite" style="padding:18px;">
+            <div style="color:#6b7280; font-weight:800;">Fechas</div>
+            <div style="margin-top:8px; color:#111827;">
+              <div><strong>Creado:</strong> {{ reclamo.creado_en|date:"d/m/Y H:i" }}</div>
+              <div><strong>Actualizado:</strong> {{ reclamo.actualizado_en|date:"d/m/Y H:i" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensaje -->
+        <div class="card-tramite" style="padding:22px; margin-top: 14px;">
+          <div style="color:#111827; font-weight:900;">Mensaje</div>
+          <p style="margin:10px 0 0; white-space:pre-line;">{{ reclamo.mensaje }}</p>
+        </div>
+
+        <!-- Respuesta pública (lo que verá el ciudadano) -->
+        {% if reclamo.respuesta_publica %}
+          <div class="card-tramite" style="padding:22px; margin-top: 14px;">
+            <div style="color:#111827; font-weight:900;">Respuesta pública</div>
+            <p style="margin:10px 0 0; white-space:pre-line;">{{ reclamo.respuesta_publica }}</p>
+          </div>
+        {% endif %}
+
+        <!-- Imágenes -->
+        {% if reclamo.imagenes.all %}
+          {% if reclamo.imagenes.count %}
+            <div class="card-tramite" style="padding:22px; margin-top: 14px;">
+              <div style="color:#111827; font-weight:900; margin-bottom:10px;">Fotos adjuntas</div>
+              <div class="grid-layout" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding:0;">
+                {% for img in reclamo.imagenes.all %}
+                  <a href="{{ img.imagen.url }}" target="_blank" rel="noopener" style="text-decoration:none;">
+                    <img src="{{ img.imagen.url }}" alt="Imagen del reclamo" style="width:100%; height:180px; object-fit:cover; border-radius:14px; border:1px solid rgba(0,0,0,.08);">
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        {% endif %}
+
+        <div style="margin-top:16px; text-align:center;">
+          {% if can_edit and admin_edit_url %}
+            <a class="btn-link" href="{{ admin_edit_url }}">Editar en Admin (recomendado)</a>
+            &nbsp;•&nbsp;
+          {% endif %}
+          <a class="btn-link" href="{% url 'gestion_reclamo_list' %}">Volver al listado</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</body>
+</html>

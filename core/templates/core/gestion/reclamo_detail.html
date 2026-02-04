@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ reclamo.codigo }} | Gestión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+<body>
+  <section class="section bg-light">
+    <div class="container" style="max-width:1200px;">
+      <div class="section-header">
+        <h2>{{ reclamo.codigo }}</h2>
+        <p class="subtitle">{{ reclamo.get_estado_display }} · {{ reclamo.secretaria.nombre }}</p>
+      </div>
+
+      {% if messages %}
+        <div style="margin:0 auto 18px;max-width:900px;">
+          {% for m in messages %}
+            <div style="padding:12px 14px;border-radius:12px;background:#fff;border:1px solid rgba(0,0,0,.08);margin-bottom:10px;">
+              {{ m }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="grid-layout" style="grid-template-columns: 1.1fr .9fr;gap:18px;">
+        <div class="card-tramite">
+          <h3>Datos</h3>
+          <p><strong>DNI:</strong> {{ reclamo.dni }}</p>
+          <p><strong>Nombre:</strong> {{ reclamo.nombre_apellido }}</p>
+          <p><strong>Email:</strong> {{ reclamo.email|default:"-" }}</p>
+          <p><strong>Tel:</strong> {{ reclamo.telefono|default:"-" }}</p>
+          <p><strong>Barrio:</strong> {{ reclamo.barrio|default:"-" }}</p>
+          <p><strong>Dirección:</strong> {{ reclamo.direccion|default:"-" }}</p>
+
+          <hr style="border:none;border-top:1px solid rgba(0,0,0,.08);margin:16px 0;">
+          <h3>Mensaje</h3>
+          <p style="white-space:pre-wrap;">{{ reclamo.mensaje }}</p>
+
+          {% if imagenes %}
+            <hr style="border:none;border-top:1px solid rgba(0,0,0,.08);margin:16px 0;">
+            <h3>Imágenes</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+              {% for img in imagenes %}
+                <a href="{{ img.imagen.url }}" target="_blank" rel="noopener noreferrer">
+                  <img src="{{ img.imagen.url }}" alt="" style="width:100%;height:150px;object-fit:cover;border-radius:14px;">
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="card-tramite">
+          <h3>Actualizar</h3>
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group"><label class="form-label">Secretaría</label>{{ form.secretaria }}</div>
+            <div class="form-group"><label class="form-label">Categoría</label>{{ form.categoria }}<div style="margin-top:10px;">{{ form.categoria_libre }}</div></div>
+            <div class="form-group"><label class="form-label">Estado</label>{{ form.estado }}</div>
+            <div class="form-group"><label class="form-label">Prioridad</label>{{ form.prioridad }}</div>
+            <div class="form-group"><label class="form-label">Asignado a</label>{{ form.asignado_a }}</div>
+
+            <div class="form-group"><label class="form-label">Nota interna</label>{{ form.nota_interna }}</div>
+            <div class="form-group"><label class="form-label">Respuesta pública</label>{{ form.respuesta_publica }}</div>
+
+            <div class="form-group"><label class="form-label">Agregar imágenes</label>{{ form.imagenes_nuevas }}</div>
+            <div class="form-group"><label class="form-label">Comentario interno (timeline)</label>{{ form.comentario_interno }}</div>
+            <div class="form-group"><label class="form-label">Comentario público (timeline)</label>{{ form.comentario_publico }}</div>
+
+            <button class="btn-submit" type="submit">Guardar cambios</button>
+          </form>
+
+          {% if eventos %}
+            <hr style="border:none;border-top:1px solid rgba(0,0,0,.08);margin:18px 0;">
+            <h3>Historial</h3>
+            <div style="display:grid;gap:10px;">
+              {% for e in eventos %}
+                <div style="padding:12px;border-radius:14px;background:#fff;border:1px solid rgba(0,0,0,.08);">
+                  <div style="font-size:.92rem;color:#666;">
+                    {{ e.creado_en|date:"d/m/Y H:i" }}
+                    {% if e.creado_por %} · {{ e.creado_por }}{% endif %}
+                  </div>
+                  {% if e.estado_nuevo %}
+                    <div style="margin-top:6px;"><strong>Estado:</strong> {{ e.estado_anterior }} → {{ e.estado_nuevo }}</div>
+                  {% endif %}
+                  {% if e.comentario_interno %}
+                    <div style="margin-top:8px;"><strong>Interno:</strong> {{ e.comentario_interno }}</div>
+                  {% endif %}
+                  {% if e.comentario_publico %}
+                    <div style="margin-top:8px;"><strong>Público:</strong> {{ e.comentario_publico }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <a class="btn-link" href="{% url 'gestion_reclamo_list' %}">← Volver a la lista</a>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

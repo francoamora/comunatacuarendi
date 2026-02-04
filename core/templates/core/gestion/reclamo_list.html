@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión de reclamos | Tacuarendí</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+<body>
+  <section class="section bg-light">
+    <div class="container" style="max-width:1200px;">
+      <div class="section-header">
+        <h2>Gestión — Reclamos</h2>
+        <p class="subtitle">Panel interno (solo staff)</p>
+      </div>
+
+      <div class="card-tramite" style="margin-bottom:18px;">
+        <form method="get" style="display:grid;gap:12px;grid-template-columns:1fr 1fr 2fr;align-items:end;">
+          <div>
+            <label class="form-label">Estado</label>
+            <select name="estado" class="form-input">
+              <option value="">Todos</option>
+              <option value="recibido">Recibido</option>
+              <option value="en_proceso">En proceso</option>
+              <option value="resuelto">Resuelto</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Secretaría</label>
+            <select name="secretaria" class="form-input">
+              <option value="">Todas</option>
+              {% for s in secretarias %}
+                <option value="{{ s.id }}">{{ s.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Buscar</label>
+            <input class="form-input" type="text" name="q" placeholder="Código, DNI, nombre, texto...">
+          </div>
+          <div style="grid-column:1/-1;">
+            <button class="btn-submit" type="submit">Aplicar filtros</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="grid-layout" style="grid-template-columns:1fr;gap:14px;">
+        {% for r in reclamos %}
+          <a href="{% url 'gestion_reclamo_detail' r.pk %}" class="card-tramite" style="display:block;text-decoration:none;">
+            <h3 style="margin-top:0;">{{ r.codigo }} — {{ r.get_estado_display }}</h3>
+            <p style="margin:0;color:#555;">
+              DNI {{ r.dni }} · {{ r.secretaria.nombre }} · {{ r.creado_en|date:"d/m/Y H:i" }}
+            </p>
+          </a>
+        {% empty %}
+          <p style="text-align:center;color:#666;">No hay reclamos.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</body>
+</html>

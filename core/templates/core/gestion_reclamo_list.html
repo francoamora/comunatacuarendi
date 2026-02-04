@@ -1,0 +1,153 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de reclamos — Tacuarendí</title>
+  <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="{% url 'home' %}" class="logo brand-lockup" aria-label="Volver al inicio">
+        <img src="{% static 'core/img/logo.png' %}" alt="Escudo Tacuarendí">
+        <span class="brand-text">
+          <span class="brand-title">Comuna de Tacuarendí</span>
+          <span class="brand-subtitle">Gestión Lorena Cardozo</span>
+        </span>
+      </a>
+      <div class="nav-menu">
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'home' %}">Inicio</a></li>
+            <li><a href="{% url 'gestion_reclamo_list' %}">Reclamos</a></li>
+            <li><a href="/admin/" class="btn-nav">Admin</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <section class="section bg-light">
+    <div class="container">
+      <div class="section-header">
+        <h2>Panel interno — Reclamos</h2>
+        <p class="subtitle">
+          Resumen y búsqueda rápida. Solo usuarios autorizados.
+        </p>
+      </div>
+
+      <div class="form-container" style="max-width: 1120px; margin: 0 auto;">
+
+        <div class="grid-layout" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding: 0; margin-bottom: 14px;">
+          <div class="card-tramite" style="padding:18px;">
+            <div style="color:#6b7280; font-weight:800;">Recibidos</div>
+            <div style="font-size:1.7rem; font-weight:900; color:#111827;">{{ totals.recibidos|default:0 }}</div>
+          </div>
+          <div class="card-tramite" style="padding:18px;">
+            <div style="color:#6b7280; font-weight:800;">En proceso</div>
+            <div style="font-size:1.7rem; font-weight:900; color:#111827;">{{ totals.en_proceso|default:0 }}</div>
+          </div>
+          <div class="card-tramite" style="padding:18px;">
+            <div style="color:#6b7280; font-weight:800;">Resueltos</div>
+            <div style="font-size:1.7rem; font-weight:900; color:#111827;">{{ totals.resueltos|default:0 }}</div>
+          </div>
+          <div class="card-tramite" style="padding:18px;">
+            <div style="color:#6b7280; font-weight:800;">Total</div>
+            <div style="font-size:1.7rem; font-weight:900; color:#111827;">{{ totals.total|default:0 }}</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom: 12px;">
+          <div style="color:#6b7280; font-weight:700;">
+            Mostrando <strong style="color:#111827;">{{ filtered_count|default:0 }}</strong>
+            {% if totals.total %}de <strong style="color:#111827;">{{ totals.total }}</strong>{% endif %}
+          </div>
+          <a class="btn-link" href="{% url 'gestion_reclamo_list' %}" style="font-weight:800;">Limpiar filtros</a>
+        </div>
+
+        <form method="get" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+          <input
+            class="form-input"
+            style="flex:1; min-width:260px;"
+            name="q"
+            value="{{ q }}"
+            placeholder="Buscar por código, DNI, nombre o teléfono"
+            autocomplete="off"
+          >
+
+          <select class="form-input" style="width:240px;" name="estado">
+            <option value="">Todos los estados</option>
+            {% for v,l in estado_choices %}
+              <option value="{{ v }}" {% if estado == v %}selected{% endif %}>{{ l }}</option>
+            {% endfor %}
+          </select>
+
+          <button class="btn-submit" style="width:auto; padding:14px 18px;" type="submit">Filtrar</button>
+        </form>
+
+        <div class="grid-layout" style="grid-template-columns:1fr; padding:0;">
+          {% for r in reclamos %}
+            <a href="{% url 'gestion_reclamo_detail' r.pk %}" style="text-decoration:none;">
+              <div class="card-tramite" style="padding:22px;">
+                <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:flex-start;">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                        <div style="font-weight:900; color:#111827; font-size: 1.1rem;">
+                        {{ r.codigo }}
+                        </div>
+                        <span style="font-size: 0.85rem; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;">DNI {{ r.dni }}</span>
+                    </div>
+
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 4px;">
+                        {{ r.tema }}
+                    </div>
+
+                    <div style="color:#6b7280; font-size: 0.9rem;">
+                      <i class="fa-regular fa-user"></i> {{ r.nombre_apellido }}
+                      &nbsp;|&nbsp; 
+                      <i class="fa-regular fa-calendar"></i> {{ r.creado_en|date:"d/m/Y" }}
+                      &nbsp;|&nbsp; 
+                      <i class="fa-solid fa-building-flag"></i> {{ r.secretaria.nombre }}
+                    </div>
+                  </div>
+
+                  <div style="font-weight:900;">
+                    {% if r.estado == "resuelto" %}
+                      <span style="padding:8px 12px; border-radius:999px; background:#dcfce7; color:#166534; font-size: 0.85rem;"><i class="fa-solid fa-check"></i> Resuelto</span>
+                    {% elif r.estado == "en_proceso" %}
+                      <span style="padding:8px 12px; border-radius:999px; background:#fef3c7; color:#92400e; font-size: 0.85rem;"><i class="fa-solid fa-rotate"></i> En proceso</span>
+                    {% else %}
+                      <span style="padding:8px 12px; border-radius:999px; background:#e0f2fe; color:#075985; font-size: 0.85rem;"><i class="fa-solid fa-inbox"></i> Recibido</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </a>
+          {% empty %}
+            <p style="text-align:center; color:#6b7280; margin: 18px 0;">No hay reclamos que coincidan con la búsqueda.</p>
+          {% endfor %}
+        </div>
+
+        <div style="text-align:center; margin-top:16px;">
+          {% if reclamos.has_other_pages %}
+          <div style="display:flex; justify-content:center; gap:10px; margin-bottom: 20px;">
+              {% if reclamos.has_previous %}
+                <a class="btn-link" href="?page={{ reclamos.previous_page_number }}&q={{ q }}&estado={{ estado }}">Anterior</a>
+              {% endif %}
+              <span style="align-self:center; font-weight:600;">Página {{ reclamos.number }} de {{ reclamos.paginator.num_pages }}</span>
+              {% if reclamos.has_next %}
+                <a class="btn-link" href="?page={{ reclamos.next_page_number }}&q={{ q }}&estado={{ estado }}">Siguiente</a>
+              {% endif %}
+          </div>
+          {% endif %}
+          
+          <a class="btn-link" href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Volver al sitio</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
