@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from ckeditor.fields import RichTextField
+from urllib.parse import quote, urlparse, parse_qs
 
 # =========================
 # AUTORIDADES Y OBRAS
@@ -108,6 +109,63 @@ class Novedad(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+class Video(models.Model):
+    CATEGORIAS = [
+        ("obras", "Obras"),
+        ("gestion", "Gestión"),
+        ("comunidad", "Comunidad"),
+        ("eventos", "Eventos"),
+        ("entrevistas", "Entrevistas"),
+    ]
+
+    titulo = models.CharField(max_length=200)
+    bajada = models.CharField(max_length=260, blank=True, verbose_name="Texto breve")
+    url = models.URLField(verbose_name="URL del video")
+    portada = models.ImageField(upload_to="videos/", blank=True, null=True, verbose_name="Portada")
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS, default="gestion")
+    fecha = models.DateField(default=timezone.now)
+    destacado = models.BooleanField(default=True)
+    visible = models.BooleanField(default=True)
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["orden", "-fecha"]
+        verbose_name = "Video"
+        verbose_name_plural = "Videos"
+
+    def __str__(self):
+        return self.titulo
+
+    @property
+    def embed_url(self):
+        parsed = urlparse(self.url)
+        host = parsed.netloc.lower().replace("www.", "")
+        path_parts = [part for part in parsed.path.strip("/").split("/") if part]
+        query = parse_qs(parsed.query)
+
+        if "youtu.be" in host and path_parts:
+            return f"https://www.youtube.com/embed/{path_parts[0]}?rel=0"
+
+        if "youtube.com" in host:
+            video_id = query.get("v", [""])[0]
+            if not video_id and len(path_parts) >= 2 and path_parts[0] in {"shorts", "embed"}:
+                video_id = path_parts[1]
+            if video_id:
+                return f"https://www.youtube.com/embed/{video_id}?rel=0"
+
+        if "vimeo.com" in host and path_parts:
+            return f"https://player.vimeo.com/video/{path_parts[-1]}"
+
+        if "facebook.com" in host or "fb.watch" in host:
+            encoded_url = quote(self.url, safe="")
+            return f"https://www.facebook.com/plugins/video.php?href={encoded_url}&show_text=false&width=960"
+
+        if "instagram.com" in host and len(path_parts) >= 2 and path_parts[0] in {"p", "reel", "tv"}:
+            return f"https://www.instagram.com/{path_parts[0]}/{path_parts[1]}/embed"
+
+        return ""
 
 
 # =========================

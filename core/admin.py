@@ -4,7 +4,7 @@ from .models import (
     Autoridad, Obra, ObraImagen, Tramite, Servicio, Historia, Documento,
     Secretaria, Reclamo, ReclamoImagen, ReclamoEvento,
     InfoCategoria, InfoDato, Sugerencia, 
-    Novedad, CategoriaNovedad # <--- IMPORTANTE: Importar CategoriaNovedad
+    Novedad, CategoriaNovedad, Video
 )
 
 # --- SUGERENCIAS ---
@@ -55,6 +55,22 @@ class NovedadAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="width: 50px; height: auto; border-radius: 4px;" />', obj.imagen.url)
         return "-"
     ver_imagen.short_description = "Portada"
+
+
+@admin.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    list_display = ("titulo", "categoria", "fecha", "destacado", "visible", "orden", "ver_portada")
+    list_filter = ("categoria", "destacado", "visible", "fecha")
+    list_editable = ("destacado", "visible", "orden")
+    search_fields = ("titulo", "bajada", "url")
+    date_hierarchy = "fecha"
+    ordering = ("orden", "-fecha")
+
+    def ver_portada(self, obj):
+        if obj.portada:
+            return format_html('<img src="{}" style="width: 64px; height: 42px; object-fit: cover; border-radius: 6px;" />', obj.portada.url)
+        return "-"
+    ver_portada.short_description = "Portada"
 
 # --- SERVICIOS / CONTACTOS ---
 @admin.register(Servicio)

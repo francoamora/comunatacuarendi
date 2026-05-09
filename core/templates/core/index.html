@@ -5,15 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comuna de Tacuarendí | Sitio Oficial</title>
-    <link rel="preload" as="image" href="{% static 'core/img/gestion.jpeg' %}">
+    <link rel="preload" as="image" href="{% if autoridad and autoridad.foto %}{{ autoridad.foto.url }}{% else %}{% static 'core/img/cana-bg.jpg' %}{% endif %}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 
-    <script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
-    <script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+    <!-- CKEditor (defer para no bloquear render) -->
+    <script defer type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+    <script defer type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
 
     <style>
         /* --- ESTILOS GENERALES (BASE) --- */
@@ -31,7 +32,7 @@
             display: flex; justify-content: space-between; align-items: center; height: 100%;
             margin: 0 auto; width: 95%; max-width: 1800px; padding: 0 20px;
         }
-        .nav-links { display: flex; gap: 35px; list-style: none; margin: 0; padding: 0; align-items: center; }
+        .nav-links { display: flex; gap: 24px; list-style: none; margin: 0; padding: 0; align-items: center; }
         .nav-links a { text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 0.95rem; transition: 0.2s; position: relative; letter-spacing: -0.01em; }
         .nav-links a:hover { color: var(--primary); }
 
@@ -153,9 +154,9 @@
         .contact-card-detail a { color: var(--primary); text-decoration: none; font-weight: 600; }
         .contact-card-detail a:hover { text-decoration: underline; }
 
-        .sug-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .sug-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
         .sug-modal-overlay.open { display: flex; opacity: 1; }
-        .sug-modal-card { background: rgba(255, 255, 255, 0.95); width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s ease; }
+        .sug-modal-card { background: rgba(255, 255, 255, 0.95); width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.2s ease; }
         .sug-modal-overlay.open .sug-modal-card { transform: translateY(0); }
 
         /* CKEDITOR */
@@ -202,7 +203,7 @@
         }
 
         /* =========================================================
-           MODAL TRÁMITES (GLOBAL, PRO, COMPATIBLE CON .active)
+           MODAL TRÁMITES (ÚNICO, REUTILIZABLE)
            ========================================================= */
         .info-modal-overlay{
             position: fixed;
@@ -218,8 +219,7 @@
             opacity: 0;
             transition: opacity 0.2s ease;
         }
-        .info-modal-overlay.active,
-        .info-modal-overlay.open{
+        .info-modal-overlay.active{
             display: flex;
             opacity: 1;
         }
@@ -299,8 +299,17 @@
         }
         .btn-download:hover{ filter: brightness(0.95); }
 
-        #tramites .card-tramite[data-modal-id]{ cursor: pointer; }
-        #tramites .card-tramite[data-modal-id]:focus{
+        /* Footer seam fix */
+        .footer-fix { box-shadow: none !important; border-top: 0 !important; position: relative; overflow: hidden; }
+        .footer-fix::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px; background: inherit; }
+
+        /* Accesibilidad foco */
+        #tramites .card-tramite[data-tramite-id]{ cursor: pointer; }
+        #tramites .card-tramite[data-tramite-id]:focus{
+            outline: 3px solid rgba(22,163,74,0.25);
+            outline-offset: 3px;
+        }
+        [data-gallery="lightbox"]:focus{
             outline: 3px solid rgba(22,163,74,0.25);
             outline-offset: 3px;
         }
@@ -317,9 +326,9 @@
 
     <!-- ✅ LIGHTBOX ÚNICO -->
     <div id="lightbox" class="lightbox-modal" role="dialog" aria-modal="true" aria-hidden="true">
-        <button class="lightbox-close" type="button" aria-label="Cerrar" onclick="closeLightbox()">&times;</button>
+        <button class="lightbox-close" type="button" aria-label="Cerrar" data-lightbox-close>&times;</button>
 
-        <button class="lightbox-arrow lightbox-prev" type="button" onclick="changeLightboxImage(-1)" aria-label="Anterior">
+        <button class="lightbox-arrow lightbox-prev" type="button" aria-label="Anterior" data-lightbox-prev>
             <i class="fa-solid fa-chevron-left"></i>
         </button>
 
@@ -327,9 +336,32 @@
             <img id="lightbox-img" class="lightbox-image" src="" alt="Vista previa">
         </div>
 
-        <button class="lightbox-arrow lightbox-next" type="button" onclick="changeLightboxImage(1)" aria-label="Siguiente">
+        <button class="lightbox-arrow lightbox-next" type="button" aria-label="Siguiente" data-lightbox-next>
             <i class="fa-solid fa-chevron-right"></i>
         </button>
+    </div>
+
+    <div id="videoModal" class="video-modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="videoModalTitle">
+        <div class="video-modal-card">
+            <div class="video-modal-header">
+                <h3 id="videoModalTitle" class="video-modal-title">Video</h3>
+                <button class="video-modal-close" type="button" aria-label="Cerrar video" data-video-close>&times;</button>
+            </div>
+            <div class="video-frame-wrap">
+                <iframe id="videoFrame"
+                        title="Reproductor de video"
+                        src=""
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        hidden></iframe>
+                <div id="videoFallback" class="video-fallback" hidden>
+                    <i class="fa-solid fa-up-right-from-square" style="font-size: 2rem; color: rgba(255,255,255,0.65);"></i>
+                    <p style="margin:0; max-width: 420px;">Este video se abre mejor desde su plataforma original.</p>
+                    <a id="videoDirect" href="#" target="_blank" rel="noopener">Abrir video</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <header class="navbar">
@@ -348,6 +380,7 @@
                         <li><a href="#inicio">Inicio</a></li>
                         <li><a href="#autoridades">Autoridades</a></li>
                         <li><a href="#novedades">Gestión al Día</a></li>
+                        <li><a href="#videos">Videos</a></li>
                         <li><a href="#obras">Obras</a></li>
                         <li><a href="#tramites">Trámites</a></li>
                         <li><a href="#historias">Historias</a></li>
@@ -356,13 +389,15 @@
                         <li><a href="#contacto" class="btn-nav">Contacto</a></li>
                     </ul>
                 </nav>
-                <button class="mobile-menu-btn" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+                <button class="mobile-menu-btn" aria-label="Abrir menú" aria-expanded="false">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
             </div>
         </div>
     </header>
 
     <section id="inicio" class="hero">
-        <div class="hero-bg" style="background-image: url({% static 'core/img/gestion.jpeg' %});"></div>
+        <div class="hero-bg" style="background-image: url('{% if autoridad and autoridad.foto %}{{ autoridad.foto.url }}{% else %}{% static 'core/img/cana-bg.jpg' %}{% endif %}');"></div>
         <div class="hero-overlay"></div>
         <div class="container hero-container">
             <div class="hero-layout">
@@ -430,8 +465,9 @@
                 {% for novedad in novedades %}
                 <article class="card-universal reveal"
                          {% if novedad.imagen %}
-                         onclick="openGalleryLightbox(this)"
-                         data-images='["{{ novedad.imagen.url }}"]'
+                         role="button" tabindex="0"
+                         data-gallery="lightbox"
+                         data-images='["{{ novedad.imagen.url|escapejs }}"]'
                          {% endif %}>
                     {% if novedad.imagen %}
                         <img src="{{ novedad.imagen.url }}" class="card-img-full" alt="{{ novedad.titulo }}">
@@ -463,6 +499,54 @@
         </div>
     </section>
 
+    <section id="videos" class="section section-videos">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="video-kicker">Mirada cercana</div>
+                <h2>Así avanza Tacuarendí</h2>
+                <p class="subtitle">Obras, encuentros y momentos de gestión contados con imágenes, para ver de cerca lo que estamos construyendo juntos.</p>
+            </div>
+
+            {% if videos %}
+            <div class="video-grid">
+                {% for video in videos %}
+                <button class="video-card reveal"
+                        type="button"
+                        data-video-open
+                        data-video-title="{{ video.titulo|escape }}"
+                        data-video-src="{{ video.embed_url|escape }}"
+                        data-video-url="{{ video.url|escape }}"
+                        aria-label="Reproducir {{ video.titulo }}">
+                    {% if video.portada %}
+                        <img src="{{ video.portada.url }}" loading="lazy" alt="">
+                    {% else %}
+                        <div class="video-placeholder" aria-hidden="true">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                    {% endif %}
+                    <span class="video-play" aria-hidden="true">
+                        <i class="fa-solid fa-play"></i>
+                    </span>
+                    <span class="video-card-body">
+                        <span class="video-tag"><i class="fa-solid fa-circle-play"></i> {{ video.get_categoria_display }}</span>
+                        <h3>{{ video.titulo }}</h3>
+                        {% if video.bajada %}
+                            <p>{{ video.bajada }}</p>
+                        {% endif %}
+                        <span class="video-date"><i class="fa-regular fa-calendar"></i> {{ video.fecha|date:"d/m/Y" }}</span>
+                    </span>
+                </button>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="video-empty reveal">
+                <i class="fa-solid fa-film" style="font-size:2rem; color:#94a3b8; margin-bottom:12px;"></i>
+                <p style="margin:0; font-weight:700;">Próximamente vamos a compartir videos de obras, actividades y encuentros de la comunidad.</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
     <section id="obras" class="section">
         <div class="container">
             <div class="section-header reveal">
@@ -471,19 +555,20 @@
             </div>
 
             <div class="filter-container reveal">
-                <button class="filter-btn active" onclick="filterObras('all', this)">Todas</button>
-                <button class="filter-btn" onclick="filterObras('infraestructura', this)">Obras Públicas</button>
-                <button class="filter-btn" onclick="filterObras('educacion', this)">Educación</button>
-                <button class="filter-btn" onclick="filterObras('deporte', this)">Deportes</button>
-                <button class="filter-btn" onclick="filterObras('salud', this)">Salud</button>
+                <button class="filter-btn active" type="button" data-obras-filter="all">Todas</button>
+                <button class="filter-btn" type="button" data-obras-filter="infraestructura">Obras Públicas</button>
+                <button class="filter-btn" type="button" data-obras-filter="educacion">Educación</button>
+                <button class="filter-btn" type="button" data-obras-filter="deporte">Deportes</button>
+                <button class="filter-btn" type="button" data-obras-filter="salud">Salud</button>
             </div>
 
             <div class="grid-layout">
                 {% for obra in obras %}
                 <article class="card-universal card-obra reveal"
+                         role="button" tabindex="0"
                          data-category="{{ obra.categoria }}"
-                         onclick="openGalleryLightbox(this)"
-                         data-images='["{{ obra.imagen.url }}"{% for img in obra.imagenes.all %}, "{{ img.imagen.url }}"{% endfor %}]'>
+                         data-gallery="lightbox"
+                         data-images='["{{ obra.imagen.url|escapejs }}"{% for img in obra.imagenes.all %}, "{{ img.imagen.url|escapejs }}"{% endfor %}]'>
 
                     <img src="{{ obra.imagen.url }}" class="card-img-full" loading="lazy" alt="{{ obra.titulo }}">
 
@@ -511,7 +596,7 @@
     </section>
 
     <!-- =========================
-         TRÁMITES (CARDS SOLAS)
+         TRÁMITES (CARDS + MODAL ÚNICO)
          ========================= -->
     <section id="tramites" class="section bg-light">
         <div class="container">
@@ -523,11 +608,11 @@
             <div class="grid-layout">
                 {% for tramite in tramites %}
                 <div class="card-tramite reveal"
-                     data-modal-id="modal-tramite-{{ tramite.id }}"
+                     data-tramite-id="{{ tramite.id }}"
                      role="button"
                      tabindex="0"
                      aria-haspopup="dialog"
-                     aria-controls="modal-tramite-{{ tramite.id }}">
+                     aria-controls="tramiteModal">
                     <div class="icon-box">
                         <i class="{{ tramite.icono|default:'fa-solid fa-file-signature' }}"></i>
                     </div>
@@ -538,7 +623,7 @@
 
                     <button class="btn-link"
                             type="button"
-                            data-modal-id="modal-tramite-{{ tramite.id }}"
+                            data-tramite-id="{{ tramite.id }}"
                             style="background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;">
                         Ver requisitos y horarios <i class="fa-solid fa-plus-circle"></i>
                     </button>
@@ -617,8 +702,9 @@
                 {% for h in historias_publicadas %}
                 <article class="card-universal reveal" style="height:auto; min-height:400px; background:white; color:var(--text-main);"
                          {% if h.imagen %}
-                         onclick="openGalleryLightbox(this)"
-                         data-images='["{{ h.imagen.url }}"]'
+                         role="button" tabindex="0"
+                         data-gallery="lightbox"
+                         data-images='["{{ h.imagen.url|escapejs }}"]'
                          {% endif %}>
                     <div style="height:250px; overflow:hidden; position:relative;">
                         <div style="position:absolute; top:15px; right:15px; background:white; padding:5px 12px; border-radius:10px; z-index:2; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
@@ -677,7 +763,7 @@
                     <div class="icon-box" style="background:#fef3c7; color:#d97706;"><i class="fa-regular fa-lightbulb"></i></div>
                     <h3>Buzón de Sugerencias</h3>
                     <p style="font-size: 0.95rem; margin-bottom: 18px; color: #666;">Envianos tu idea o crítica constructiva de forma <strong>anónima</strong>.</p>
-                    <button class="btn-link" onclick="openSugModal()" style="border:none; background:none; cursor:pointer;">
+                    <button class="btn-link" type="button" data-modal-open="sugModal" style="border:none; background:none; cursor:pointer;">
                         Dejar sugerencia <i class="fa-solid fa-chevron-right"></i>
                     </button>
                 </div>
@@ -685,9 +771,9 @@
         </div>
     </section>
 
-    <div id="sugModal" class="sug-modal-overlay" aria-hidden="true">
+    <div id="sugModal" class="sug-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Buzón de sugerencias">
         <div class="sug-modal-card">
-            <button onclick="closeSugModal()" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:1.5rem; cursor:pointer; color:#666;">&times;</button>
+            <button type="button" data-modal-close="sugModal" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:1.5rem; cursor:pointer; color:#666;">&times;</button>
             <h3 style="margin-bottom:15px; color:var(--text-main);">Tu opinión nos importa</h3>
             <p style="font-size:0.9rem; color:#666; margin-bottom:20px;">Esta sugerencia es 100% anónima. No guardamos tus datos.</p>
 
@@ -720,7 +806,7 @@
 
             <div class="grid-layout">
                 {% for doc in documentos %}
-                <a href="{{ doc.archivo.url }}" target="_blank" class="card-doc reveal">
+                <a href="{{ doc.archivo.url }}" target="_blank" class="card-doc reveal" rel="noopener">
                     <div class="doc-icon">
                         {% if 'pdf' in doc.archivo.url %}
                             <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i>
@@ -796,271 +882,94 @@
     <a href="https://wa.me/543482553976" class="whatsapp-float" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i></a>
 
     <footer class="footer footer-fix">
-  <div class="container">
-    <div class="footer-wrapper">
-      <ul class="footer-nav">
-        <li><a href="{% url 'home' %}#inicio">Inicio</a></li>
-        <li><a href="{% url 'home' %}#autoridades">Autoridades</a></li>
-        <li><a href="{% url 'home' %}#novedades">Gestión al Día</a></li>
-        <li><a href="{% url 'home' %}#obras">Obras</a></li>
-        <li><a href="{% url 'home' %}#tramites">Trámites</a></li>
-        <li><a href="{% url 'home' %}#historias">Historias</a></li>
-        <li><a href="{% url 'home' %}#escucha">Reclamos</a></li>
-        <li><a href="{% url 'home' %}#transparencia">Transparencia</a></li>
-        <li><a href="{% url 'home' %}#contacto">Contacto</a></li>
-      </ul>
+      <div class="container">
+        <div class="footer-wrapper">
+          <ul class="footer-nav">
+            <li><a href="{% url 'home' %}#inicio">Inicio</a></li>
+            <li><a href="{% url 'home' %}#autoridades">Autoridades</a></li>
+            <li><a href="{% url 'home' %}#novedades">Gestión al Día</a></li>
+            <li><a href="{% url 'home' %}#videos">Videos</a></li>
+            <li><a href="{% url 'home' %}#obras">Obras</a></li>
+            <li><a href="{% url 'home' %}#tramites">Trámites</a></li>
+            <li><a href="{% url 'home' %}#historias">Historias</a></li>
+            <li><a href="{% url 'home' %}#escucha">Reclamos</a></li>
+            <li><a href="{% url 'home' %}#transparencia">Transparencia</a></li>
+            <li><a href="{% url 'home' %}#contacto">Contacto</a></li>
+          </ul>
 
-      <div class="footer-social">
-        <a href="https://www.facebook.com/lorenacardozop" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-          <i class="fa-brands fa-facebook-f"></i>
-        </a>
-        <a href="https://www.instagram.com/comunatacuarendi/?hl=es" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-          <i class="fa-brands fa-instagram"></i>
-        </a>
+          <div class="footer-social">
+            <a href="https://www.facebook.com/lorenacardozop" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <i class="fa-brands fa-facebook-f"></i>
+            </a>
+            <a href="https://www.instagram.com/comunatacuarendi/?hl=es" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <i class="fa-brands fa-instagram"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-divider"></div>
+
+        <div class="footer-bottom">
+          <div class="copyright-text">
+            &copy; {% now "Y" %} <strong>Comuna de Tacuarendí</strong>. Gestión Lorena Cardozo.
+          </div>
+          <div class="dev-credit">
+            Desarrollado por Franco Mora
+          </div>
+        </div>
       </div>
-    </div>
-
-    <div class="footer-divider"></div>
-
-    <div class="footer-bottom">
-      <div class="copyright-text">
-        &copy; {% now "Y" %} <strong>Comuna de Tacuarendí</strong>. Gestión Lorena Cardozo.
-      </div>
-      <div class="dev-credit">
-        Desarrollado por Franco Mora
-      </div>
-    </div>
-  </div>
-</footer>
-
+    </footer>
 
     <!-- =========================
-         MODALES TRÁMITES (AL FINAL DEL BODY, ANTI-RECORTE)
+         TRÁMITES DATA (solo DATA; la lógica vive en main.js)
          ========================= -->
-    {% for tramite in tramites %}
-    <div id="modal-tramite-{{ tramite.id }}" class="info-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-tramite-title-{{ tramite.id }}">
-        <div class="info-modal-card">
-            <button class="close-modal" type="button" aria-label="Cerrar">&times;</button>
-            <div class="modal-header">
-                <div class="icon-circle">
-                    <i class="{{ tramite.icono|default:'fa-solid fa-file' }}"></i>
-                </div>
-                <h3 id="modal-tramite-title-{{ tramite.id }}">{{ tramite.nombre }}</h3>
-            </div>
-            <div class="modal-body">
-                {% if tramite.responsable %}
-                <div class="info-row"><i class="fa-solid fa-user-tie"></i><div><strong>Responsable:</strong> {{ tramite.responsable }}</div></div>
-                {% endif %}
-                {% if tramite.horario_atencion %}
-                <div class="info-row"><i class="fa-regular fa-clock"></i><div><strong>Horarios:</strong> {{ tramite.horario_atencion }}</div></div>
-                {% endif %}
-                {% if tramite.telefono_area %}
-                <div class="info-row"><i class="fa-solid fa-phone"></i><div><strong>Contacto:</strong> {{ tramite.telefono_area }}</div></div>
-                {% endif %}
-
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-
-                <h4 style="margin-bottom: 10px; color: var(--text-main);">Requisitos:</h4>
-                <div class="modal-requirements">
-                    {% if tramite.requisitos %}
-                        {{ tramite.requisitos|linebreaks }}
-                    {% else %}
-                        <p>Consultar en administración.</p>
-                    {% endif %}
-                </div>
-            </div>
-            {% if tramite.archivo_pdf %}
-            <div class="modal-footer">
-                <a href="{{ tramite.archivo_pdf.url }}" target="_blank" class="btn-download">Descargar Formulario PDF</a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    {% endfor %}
-
-    <!-- 👇 main.js en defer para evitar carreras (y que tu script de trámites sea el que manda) -->
-    <script src="{% static 'core/js/main.js' %}" defer></script>
-
     <script>
-        // =========================
-        // 1) LIGHTBOX
-        // =========================
-        let currentImages = [];
-        let currentIndex = 0;
-
-        function openGalleryLightbox(card) {
-            const data = card?.getAttribute?.('data-images');
-            if (!data) return;
-
-            try {
-                currentImages = JSON.parse(data);
-            } catch (e) {
-                const img = card.querySelector?.('img');
-                currentImages = img?.src ? [img.src] : [];
-            }
-
-            currentImages = (currentImages || []).filter(Boolean);
-            if (!currentImages.length) return;
-
-            currentIndex = 0;
-            updateLightbox();
-
-            const lb = document.getElementById('lightbox');
-            lb.classList.add('active');
-            lb.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeLightbox() {
-            const lb = document.getElementById('lightbox');
-            lb.classList.remove('active');
-            lb.setAttribute('aria-hidden', 'true');
-            document.body.style.overflow = '';
-        }
-
-        function changeLightboxImage(dir) {
-            if (!currentImages.length) return;
-            currentIndex += dir;
-            if (currentIndex >= currentImages.length) currentIndex = 0;
-            if (currentIndex < 0) currentIndex = currentImages.length - 1;
-            updateLightbox();
-        }
-
-        function updateLightbox() {
-            const img = document.getElementById('lightbox-img');
-            if (!img) return;
-            img.style.opacity = 0;
-            setTimeout(() => {
-                img.src = currentImages[currentIndex];
-                img.style.opacity = 1;
-            }, 150);
-        }
-
-        (() => {
-            const lb = document.getElementById('lightbox');
-            if (!lb) return;
-
-            lb.addEventListener('click', (e) => {
-                if (e.target === lb) closeLightbox();
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (!lb.classList.contains('active')) return;
-                if (e.key === 'Escape') closeLightbox();
-                if (e.key === 'ArrowRight') changeLightboxImage(1);
-                if (e.key === 'ArrowLeft') changeLightboxImage(-1);
-            });
-        })();
-
-        // =========================
-        // 2) FILTROS OBRAS
-        // =========================
-        function filterObras(cat, btn) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-
-            document.querySelectorAll('.card-obra').forEach(card => {
-                const show = (cat === 'all' || card.dataset.category === cat);
-                card.style.display = show ? 'block' : 'none';
-                if (show) card.style.animation = 'fadeIn 0.6s ease forwards';
-            });
-        }
-
-        // =========================
-        // 3) MODALES TRÁMITES (PRO + ANTI "ABRE Y CIERRA")
-        // =========================
-        (() => {
-            if (window.__TRAMITES_MODAL_V3__) return;
-            window.__TRAMITES_MODAL_V3__ = true;
-
-            const section = document.getElementById('tramites');
-            if (!section) return;
-
-            let lastFocused = null;
-
-            const getModal = (id) => (id ? document.getElementById(id) : null);
-
-            function openModal(modal, opener) {
-                if (!modal) return;
-                lastFocused = opener || document.activeElement;
-
-                modal.classList.add('active');
-                modal.classList.remove('open');
-                modal.setAttribute('aria-hidden', 'false');
-                document.body.style.overflow = 'hidden';
-
-                const closeBtn = modal.querySelector('.close-modal');
-                if (closeBtn) closeBtn.focus({ preventScroll: true });
-            }
-
-            function closeAll() {
-                document.querySelectorAll('.info-modal-overlay.active, .info-modal-overlay.open').forEach(m => {
-                    m.classList.remove('active');
-                    m.classList.remove('open');
-                    m.setAttribute('aria-hidden', 'true');
-                });
-                document.body.style.overflow = '';
-                if (lastFocused && typeof lastFocused.focus === 'function') {
-                    lastFocused.focus({ preventScroll: true });
-                }
-                lastFocused = null;
-            }
-
-            // Delegación CAPTURE: intercepta antes de cualquier handler global que quiera cerrar cosas
-            section.addEventListener('click', (e) => {
-                const opener = e.target.closest('[data-modal-id]');
-                if (!opener) return;
-
-                // Si tocó un link real, lo dejamos
-                if (e.target.closest('a')) return;
-
-                // Evita doble comportamiento (y cierra instantáneo)
-                e.preventDefault();
-                e.stopPropagation();
-
-                const id = opener.getAttribute('data-modal-id');
-                const modal = getModal(id);
-
-                // Abrimos en el próximo frame: mata el "open->close" por click global
-                requestAnimationFrame(() => openModal(modal, opener));
-            }, true);
-
-            // Teclado en las cards (Enter / Space)
-            section.addEventListener('keydown', (e) => {
-                const card = e.target.closest('.card-tramite[data-modal-id]');
-                if (!card) return;
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const id = card.getAttribute('data-modal-id');
-                    const modal = getModal(id);
-                    requestAnimationFrame(() => openModal(modal, card));
-                }
-            }, true);
-
-            // Cerrar: X o click afuera
-            document.addEventListener('click', (e) => {
-                const closeBtn = e.target.closest('.info-modal-overlay .close-modal');
-                if (closeBtn) {
-                    e.preventDefault();
-                    closeAll();
-                    return;
-                }
-
-                const overlay = e.target.closest('.info-modal-overlay.active, .info-modal-overlay.open');
-                if (overlay && e.target === overlay) {
-                    closeAll();
-                }
-            });
-
-            // Cerrar: ESC
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    const anyOpen = document.querySelector('.info-modal-overlay.active, .info-modal-overlay.open');
-                    if (anyOpen) closeAll();
-                }
-            });
-        })();
+      window.__TRAMITES_DATA__ = {
+        {% for tramite in tramites %}
+        "{{ tramite.id }}": {
+          id: "{{ tramite.id }}",
+          nombre: "{{ tramite.nombre|escapejs }}",
+          icono: "{{ tramite.icono|default:'fa-solid fa-file'|escapejs }}",
+          responsable: "{{ tramite.responsable|default_if_none:''|escapejs }}",
+          horario: "{{ tramite.horario_atencion|default_if_none:''|escapejs }}",
+          telefono: "{{ tramite.telefono_area|default_if_none:''|escapejs }}",
+          requisitos_html: "{% if tramite.requisitos %}{{ tramite.requisitos|linebreaksbr|escapejs }}{% else %}{{ 'Consultar en administración.'|escapejs }}{% endif %}",
+          pdf_url: "{% if tramite.archivo_pdf %}{{ tramite.archivo_pdf.url|escapejs }}{% endif %}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      };
     </script>
+
+    <!-- =========================
+         MODAL ÚNICO TRÁMITES
+         ========================= -->
+    <div id="tramiteModal" class="info-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="tramiteModalTitle">
+      <div class="info-modal-card">
+        <button class="close-modal" type="button" aria-label="Cerrar">&times;</button>
+
+        <div class="modal-header">
+          <div class="icon-circle">
+            <i id="tramiteModalIcon" class="fa-solid fa-file"></i>
+          </div>
+          <h3 id="tramiteModalTitle">Trámite</h3>
+        </div>
+
+        <div class="modal-body">
+          <div id="tramiteModalMeta"></div>
+
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+          <h4 style="margin-bottom: 10px; color: var(--text-main);">Requisitos:</h4>
+          <div id="tramiteModalReq" class="modal-requirements"></div>
+        </div>
+
+        <div class="modal-footer" id="tramiteModalFooter" hidden>
+          <a id="tramiteModalPdf" href="#" target="_blank" class="btn-download" rel="noopener">Descargar Formulario PDF</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- main.js (UNICO CEREBRO) -->
+    <script src="{% static 'core/js/main.js' %}" defer></script>
 </body>
 </html>

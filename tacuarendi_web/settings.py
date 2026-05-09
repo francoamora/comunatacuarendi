@@ -181,12 +181,14 @@ JAZZMIN_SETTINGS = {
         
         "core.Novedad": "fas fa-newspaper",
         "core.CategoriaNovedad": "fas fa-tags",
+        "core.Video": "fas fa-video",
     },
     
     "order_with_respect_to": [
         "core.Reclamo", 
         "core.Sugerencia", 
         "core.Novedad",
+        "core.Video",
         "core.Obra", 
         "core.Tramite"
     ],
