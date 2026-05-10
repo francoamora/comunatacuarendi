@@ -25,6 +25,9 @@ ALLOWED_HOSTS = ['*']
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com', 'https://*.pythonanywhere.com']
 
+# YouTube embeds require a cross-origin Referer to identify the site.
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 
 # Application definition
 

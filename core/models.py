@@ -138,6 +138,10 @@ class Video(models.Model):
     def __str__(self):
         return self.titulo
 
+    @staticmethod
+    def _youtube_embed_url(video_id):
+        return f"https://www.youtube-nocookie.com/embed/{video_id}?rel=0&playsinline=1"
+
     @property
     def embed_url(self):
         parsed = urlparse(self.url)
@@ -146,14 +150,14 @@ class Video(models.Model):
         query = parse_qs(parsed.query)
 
         if "youtu.be" in host and path_parts:
-            return f"https://www.youtube.com/embed/{path_parts[0]}?rel=0"
+            return self._youtube_embed_url(path_parts[0])
 
         if "youtube.com" in host:
             video_id = query.get("v", [""])[0]
             if not video_id and len(path_parts) >= 2 and path_parts[0] in {"shorts", "embed"}:
                 video_id = path_parts[1]
             if video_id:
-                return f"https://www.youtube.com/embed/{video_id}?rel=0"
+                return self._youtube_embed_url(video_id)
 
         if "vimeo.com" in host and path_parts:
             return f"https://player.vimeo.com/video/{path_parts[-1]}"
